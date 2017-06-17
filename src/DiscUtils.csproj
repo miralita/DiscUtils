@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DiscUtils</RootNamespace>
     <AssemblyName>DiscUtils</AssemblyName>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SignAssembly>false</SignAssembly>
     <StyleCopEnabled>false</StyleCopEnabled>
@@ -139,6 +139,10 @@
     </Compile>
     <Compile Include="Ext\ExtFileSystemOptions.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Hdi\Disk.cs" />
+    <Compile Include="Hdi\DiskFactory.cs" />
+    <Compile Include="Hdi\DiskHeader.cs" />
+    <Compile Include="Hdi\DiskLayer.cs" />
     <Compile Include="Iso9660\RockRidge\ChildLinkSystemUseEntry.cs" />
     <Compile Include="ClusterMap.cs" />
     <Compile Include="Compression\Adler32.cs" />

@@ -43,6 +43,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileRecover", "utils\FileRe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VHDXDump", "utils\VHDXDump\VHDXDump.csproj", "{2BD5F942-706C-4950-A8AB-F2159489CDCA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{B0B2FFDF-6493-45CD-A5E9-3B1B560F4E24}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -219,6 +221,14 @@ Global
 		{2BD5F942-706C-4950-A8AB-F2159489CDCA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2BD5F942-706C-4950-A8AB-F2159489CDCA}.SignedRelease|Any CPU.ActiveCfg = SignedRelease|Any CPU
 		{2BD5F942-706C-4950-A8AB-F2159489CDCA}.SignedRelease|Any CPU.Build.0 = SignedRelease|Any CPU
+		{B0B2FFDF-6493-45CD-A5E9-3B1B560F4E24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0B2FFDF-6493-45CD-A5E9-3B1B560F4E24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0B2FFDF-6493-45CD-A5E9-3B1B560F4E24}.Release (StyleCop)|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0B2FFDF-6493-45CD-A5E9-3B1B560F4E24}.Release (StyleCop)|Any CPU.Build.0 = Debug|Any CPU
+		{B0B2FFDF-6493-45CD-A5E9-3B1B560F4E24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0B2FFDF-6493-45CD-A5E9-3B1B560F4E24}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0B2FFDF-6493-45CD-A5E9-3B1B560F4E24}.SignedRelease|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0B2FFDF-6493-45CD-A5E9-3B1B560F4E24}.SignedRelease|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
