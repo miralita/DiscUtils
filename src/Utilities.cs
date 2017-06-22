@@ -36,6 +36,7 @@ namespace DiscUtils
         /// The number of bytes in a standard disk sector (512).
         /// </summary>
         internal const int SectorSize = Sizes.Sector;
+        //internal const int SectorSize = 0x200;
 
         /// <summary>
         /// The Epoch common to most (all?) Unix systems.

@@ -30,17 +30,19 @@ namespace DiscUtils.Fat
         private Stream _stream;
         private ushort _firstFatSector;
         private byte _numFats;
+        private uint _sectorSize;
 
         private FatBuffer _buffer;
 
-        public FileAllocationTable(FatType type, Stream stream, ushort firstFatSector, uint fatSize, byte numFats, byte activeFat)
+        public FileAllocationTable(FatType type, Stream stream, ushort firstFatSector, uint fatSize, byte numFats, byte activeFat, uint sectorSize)
         {
             _stream = stream;
             _firstFatSector = firstFatSector;
             _numFats = numFats;
+            _sectorSize = sectorSize;
 
-            _stream.Position = (firstFatSector + (fatSize * activeFat)) * Utilities.SectorSize;
-            _buffer = new FatBuffer(type, Utilities.ReadFully(_stream, (int)(fatSize * Utilities.SectorSize)));
+            _stream.Position = (firstFatSector + (fatSize * activeFat)) * sectorSize;
+            _buffer = new FatBuffer(type, Utilities.ReadFully(_stream, (int)(fatSize * sectorSize)));
         }
 
         internal bool IsFree(uint val)
@@ -82,7 +84,7 @@ namespace DiscUtils.Fat
         {
             for (int i = 0; i < _numFats; ++i)
             {
-                _buffer.WriteDirtyRegions(_stream, (_firstFatSector * Utilities.SectorSize) + (_buffer.Size * i));
+                _buffer.WriteDirtyRegions(_stream, (_firstFatSector * _sectorSize) + (_buffer.Size * i));
             }
 
             _buffer.ClearDirtyRegions();

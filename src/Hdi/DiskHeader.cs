@@ -13,6 +13,7 @@ namespace DiscUtils.Hdi {
 	UINT8	surfaces[4];
 	UINT8	cylinders[4];
 } HDIHDR;*/
+        public static int Size => 8 * 4;
         private uint dummy;
 
         private uint hddtype;
@@ -22,6 +23,45 @@ namespace DiscUtils.Hdi {
         private uint sectors;
         private uint surfaces;
         private uint cylinders;
+
+        public DiskHeader(HddType capacity) {
+            headersize = 4096;
+            sectorsize = 256;
+            sectors = 33;
+            switch (capacity) {
+                case HddType.Size5Mb:
+                    hddtype = 0;
+                    surfaces = 4;
+                    cylinders = 153;
+                    break;
+                case HddType.Size10Mb:
+                    hddtype = 1;
+                    surfaces = 4;
+                    cylinders = 310;
+                    break;
+                case HddType.Size15Mb:
+                    hddtype = 2;
+                    surfaces = 6;
+                    cylinders = 310;
+                    break;
+                case HddType.Size20Mb:
+                    hddtype = 3;
+                    surfaces = 8;
+                    cylinders = 615;
+                    break;
+                case HddType.Size30Mb:
+                    hddtype = 5;
+                    surfaces = 6;
+                    cylinders = 615;
+                    break;
+                case HddType.Size40Mb:
+                    hddtype = 6;
+                    surfaces = 8;
+                    cylinders = 615;
+                    break;
+            }
+            hddsize = sectors * surfaces * cylinders;
+        }
 
         public uint Dummy {
             get { return dummy; }
@@ -96,6 +136,9 @@ namespace DiscUtils.Hdi {
             i += 4;
             header.Cylinders = ReadUint(buf, i);
             return header;
+        }
+
+        public DiskHeader() {
         }
 
         private static uint ReadUint(byte[] buf, int offset) {

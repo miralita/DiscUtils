@@ -75,6 +75,7 @@ namespace DiscUtils.Fat
         private uint _bpbRootClus;
         private ushort _bpbFSInfo;
         private ushort _bpbBkBootSec;
+        private uint _sectorSize = Utilities.SectorSize;
 
         /// <summary>
         /// Initializes a new instance of the FatFileSystem class.
@@ -161,6 +162,13 @@ namespace DiscUtils.Fat
 
             Initialize(data);
             _ownsData = ownsData;
+        }
+
+        public FatFileSystem(Stream data, uint sectorSize) : base(new FatFileSystemOptions()) {
+            _sectorSize = sectorSize;
+            _dirCache = new Dictionary<uint, Directory>();
+            _timeConverter = DefaultTimeConverter;
+            Initialize(data);
         }
 
         private delegate void EntryUpdateAction(DirectoryEntry entry);
@@ -413,6 +421,11 @@ namespace DiscUtils.Fat
         }
 
         #region Disk Formatting
+
+        public static FatFileSystem FormatFloppy(Stream stream, FloppyDiskType type, string label) {
+            return FormatFloppy(stream, type, label, Utilities.SectorSize);
+        }
+
         /// <summary>
         /// Creates a formatted floppy disk image in a stream.
         /// </summary>
@@ -420,7 +433,7 @@ namespace DiscUtils.Fat
         /// <param name="type">The type of floppy to create.</param>
         /// <param name="label">The volume label for the floppy (or null).</param>
         /// <returns>An object that provides access to the newly created floppy disk image.</returns>
-        public static FatFileSystem FormatFloppy(Stream stream, FloppyDiskType type, string label)
+        public static FatFileSystem FormatFloppy(Stream stream, FloppyDiskType type, string label, uint sectorSize)
         {
             long pos = stream.Position;
 
@@ -433,17 +446,17 @@ namespace DiscUtils.Fat
             if (type == FloppyDiskType.DoubleDensity)
             {
                 sectors = 1440;
-                WriteBPB(bpb, sectors, FatType.Fat12, 224, 0, 1, 1, new Geometry(80, 2, 9), true, volId, label);
+                WriteBPB(bpb, sectors, FatType.Fat12, 224, 0, 1, 1, new Geometry(80, 2, 9), true, volId, label, sectorSize);
             }
             else if (type == FloppyDiskType.HighDensity)
             {
                 sectors = 2880;
-                WriteBPB(bpb, sectors, FatType.Fat12, 224, 0, 1, 1, new Geometry(80, 2, 18), true, volId, label);
+                WriteBPB(bpb, sectors, FatType.Fat12, 224, 0, 1, 1, new Geometry(80, 2, 18), true, volId, label, sectorSize);
             }
             else if (type == FloppyDiskType.Extended)
             {
                 sectors = 5760;
-                WriteBPB(bpb, sectors, FatType.Fat12, 224, 0, 1, 1, new Geometry(80, 2, 36), true, volId, label);
+                WriteBPB(bpb, sectors, FatType.Fat12, 224, 0, 1, 1, new Geometry(80, 2, 36), true, volId, label, sectorSize);
             }
             else
             {
@@ -453,8 +466,8 @@ namespace DiscUtils.Fat
             stream.Write(bpb, 0, bpb.Length);
 
             // Write both FAT copies
-            uint fatSize = CalcFatSize(sectors, FatType.Fat12, 1);
-            byte[] fat = new byte[fatSize * Utilities.SectorSize];
+            uint fatSize = CalcFatSize(sectors, FatType.Fat12, 1, sectorSize);
+            byte[] fat = new byte[fatSize * sectorSize];
             FatBuffer fatBuffer = new FatBuffer(FatType.Fat12, fat);
             fatBuffer.SetNext(0, 0xFFFFFFF0);
             fatBuffer.SetEndOfChain(1);
@@ -462,13 +475,13 @@ namespace DiscUtils.Fat
             stream.Write(fat, 0, fat.Length);
 
             // Write the (empty) root directory
-            uint rootDirSectors = ((224 * 32) + Utilities.SectorSize - 1) / Utilities.SectorSize;
-            byte[] rootDir = new byte[rootDirSectors * Utilities.SectorSize];
+            uint rootDirSectors = ((224 * 32) + sectorSize - 1) / sectorSize;
+            byte[] rootDir = new byte[rootDirSectors * sectorSize];
             stream.Write(rootDir, 0, rootDir.Length);
 
             // Write a single byte at the end of the disk to ensure the stream is at least as big
             // as needed for this disk image.
-            stream.Position = pos + (sectors * Utilities.SectorSize) - 1;
+            stream.Position = pos + (sectors * sectorSize) - 1;
             stream.WriteByte(0);
 
             // Give the caller access to the new file system
@@ -476,6 +489,9 @@ namespace DiscUtils.Fat
             return new FatFileSystem(stream);
         }
 
+        public static FatFileSystem FormatPartition(VirtualDisk disk, int partitionIndex, string label) {
+            return FormatPartition(disk, partitionIndex, label, Utilities.SectorSize);
+        }
         /// <summary>
         /// Formats a virtual hard disk partition.
         /// </summary>
@@ -483,7 +499,7 @@ namespace DiscUtils.Fat
         /// <param name="partitionIndex">The index of the partition on the disk.</param>
         /// <param name="label">The volume label for the partition (or null).</param>
         /// <returns>An object that provides access to the newly created partition file system.</returns>
-        public static FatFileSystem FormatPartition(VirtualDisk disk, int partitionIndex, string label)
+        public static FatFileSystem FormatPartition(VirtualDisk disk, int partitionIndex, string label, uint sectorSize)
         {
             using (Stream partitionStream = disk.Partitions[partitionIndex].Open())
             {
@@ -493,27 +509,39 @@ namespace DiscUtils.Fat
                     disk.Geometry,
                     (int)disk.Partitions[partitionIndex].FirstSector,
                     (int)(1 + disk.Partitions[partitionIndex].LastSector - disk.Partitions[partitionIndex].FirstSector),
-                    0);
+                    0,
+                    sectorSize);
             }
         }
 
-        /// <summary>
-        /// Creates a formatted hard disk partition in a stream.
-        /// </summary>
-        /// <param name="stream">The stream to write the new file system to.</param>
-        /// <param name="label">The volume label for the partition (or null).</param>
-        /// <param name="diskGeometry">The geometry of the disk containing the partition.</param>
-        /// <param name="firstSector">The starting sector number of this partition (hide's sectors in other partitions).</param>
-        /// <param name="sectorCount">The number of sectors in this partition.</param>
-        /// <param name="reservedSectors">The number of reserved sectors at the start of the partition.</param>
-        /// <returns>An object that provides access to the newly created partition file system.</returns>
         public static FatFileSystem FormatPartition(
             Stream stream,
             string label,
             Geometry diskGeometry,
             int firstSector,
             int sectorCount,
-            short reservedSectors)
+            short reservedSectors) {
+            return FormatPartition(stream, label, diskGeometry, firstSector, sectorCount, reservedSectors);
+        }
+
+        /// <summary>
+            /// Creates a formatted hard disk partition in a stream.
+            /// </summary>
+            /// <param name="stream">The stream to write the new file system to.</param>
+            /// <param name="label">The volume label for the partition (or null).</param>
+            /// <param name="diskGeometry">The geometry of the disk containing the partition.</param>
+            /// <param name="firstSector">The starting sector number of this partition (hide's sectors in other partitions).</param>
+            /// <param name="sectorCount">The number of sectors in this partition.</param>
+            /// <param name="reservedSectors">The number of reserved sectors at the start of the partition.</param>
+            /// <returns>An object that provides access to the newly created partition file system.</returns>
+            public static FatFileSystem FormatPartition(
+            Stream stream,
+            string label,
+            Geometry diskGeometry,
+            int firstSector,
+            int sectorCount,
+            short reservedSectors,
+            uint sectorSize)
         {
             long pos = stream.Position;
 
@@ -590,20 +618,20 @@ namespace DiscUtils.Fat
                 }
             }
 
-            WriteBPB(bpb, (uint)sectorCount, fatType, maxRootEntries, (uint)firstSector, (ushort)reservedSectors, sectorsPerCluster, diskGeometry, false, volId, label);
+            WriteBPB(bpb, (uint)sectorCount, fatType, maxRootEntries, (uint)firstSector, (ushort)reservedSectors, sectorsPerCluster, diskGeometry, false, volId, label, sectorSize);
             stream.Write(bpb, 0, bpb.Length);
 
             /*
              * Skip the reserved sectors
              */
 
-            stream.Position = pos + (((ushort)reservedSectors) * Utilities.SectorSize);
+            stream.Position = pos + (((ushort)reservedSectors) * sectorSize);
 
             /*
              * Write both FAT copies
              */
 
-            byte[] fat = new byte[CalcFatSize((uint)sectorCount, fatType, sectorsPerCluster) * Utilities.SectorSize];
+            byte[] fat = new byte[CalcFatSize((uint)sectorCount, fatType, sectorsPerCluster, sectorSize) * sectorSize];
             FatBuffer fatBuffer = new FatBuffer(fatType, fat);
             fatBuffer.SetNext(0, 0xFFFFFFF8);
             fatBuffer.SetEndOfChain(1);
@@ -624,23 +652,23 @@ namespace DiscUtils.Fat
             uint rootDirSectors;
             if (fatType < FatType.Fat32)
             {
-                rootDirSectors = (uint)(((maxRootEntries * 32) + Utilities.SectorSize - 1) / Utilities.SectorSize);
+                rootDirSectors = (uint)(((maxRootEntries * 32) + sectorSize - 1) / sectorSize);
             }
             else
             {
                 rootDirSectors = sectorsPerCluster;
             }
 
-            byte[] rootDir = new byte[rootDirSectors * Utilities.SectorSize];
+            byte[] rootDir = new byte[rootDirSectors * sectorSize];
             stream.Write(rootDir, 0, rootDir.Length);
 
             /*
              * Make sure the stream is at least as large as the partition requires.
              */
 
-            if (stream.Length < pos + (sectorCount * Utilities.SectorSize))
+            if (stream.Length < pos + (sectorCount * sectorSize))
             {
-                stream.SetLength(pos + (sectorCount * Utilities.SectorSize));
+                stream.SetLength(pos + (sectorCount * sectorSize));
             }
 
             /*
@@ -664,7 +692,7 @@ namespace DiscUtils.Fat
                 return false;
             }
 
-            stream.Position = 0;
+            stream.Position = 100;
             byte[] bytes = Utilities.ReadFully(stream, 512);
             ushort bpbBytesPerSec = Utilities.ToUInt16LittleEndian(bytes, 11);
             if (bpbBytesPerSec != 512)
@@ -1612,9 +1640,10 @@ namespace DiscUtils.Fat
             Geometry diskGeometry,
             bool isFloppy,
             uint volId,
-            string label)
+            string label,
+            uint sectorSize)
         {
-            uint fatSectors = CalcFatSize(sectors, fatType, sectorsPerCluster);
+            uint fatSectors = CalcFatSize(sectors, fatType, sectorsPerCluster, sectorSize);
 
             bootSector[0] = 0xEB;
             bootSector[1] = 0x3C;
@@ -1696,11 +1725,11 @@ namespace DiscUtils.Fat
             bootSector[511] = 0xAA;
         }
 
-        private static uint CalcFatSize(uint sectors, FatType fatType, byte sectorsPerCluster)
+        private static uint CalcFatSize(uint sectors, FatType fatType, byte sectorsPerCluster, uint sectorSize)
         {
             uint numClusters = (uint)(sectors / sectorsPerCluster);
             uint fatBytes = (numClusters * (ushort)fatType) / 8;
-            return (fatBytes + Utilities.SectorSize - 1) / Utilities.SectorSize;
+            return (fatBytes + sectorSize - 1) / sectorSize;
         }
 
         private static void WriteBS(byte[] bootSector, int offset, bool isFloppy, uint volId, string label, FatType fatType)
@@ -1823,7 +1852,7 @@ namespace DiscUtils.Fat
 
         private void LoadFAT()
         {
-            _fat = new FileAllocationTable(_type, _data, _bpbRsvdSecCnt, (uint)FatSize, (byte)FatCount, ActiveFat);
+            _fat = new FileAllocationTable(_type, _data, _bpbRsvdSecCnt, (uint)FatSize, (byte)FatCount, ActiveFat, _sectorSize);
         }
 
         private void ReadBPB()

@@ -20,6 +20,8 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
+using System.Runtime.Remoting.Messaging;
+
 namespace DiscUtils.Fat
 {
     using System;
@@ -92,13 +94,15 @@ namespace DiscUtils.Fat
             return val == 0;
         }
 
-        internal bool IsEndOfChain(uint val)
-        {
+        internal bool IsEndOfChain(uint val) {
             switch (_type)
             {
-                case FatType.Fat12: return (val & 0x0FFF) >= 0x0FF8;
-                case FatType.Fat16: return (val & 0xFFFF) >= 0xFFF8;
-                case FatType.Fat32: return (val & 0x0FFFFFF8) >= 0x0FFFFFF8;
+                case FatType.Fat12:
+                    return (val & 0x0FFF) >= 0x0FF8 || val == 0x05e5 || val == 0xe5e;
+                case FatType.Fat16:
+                    return (val & 0xFFFF) >= 0xFFF8 || val == 0xe5e5 || val == 0x5e5e;
+                case FatType.Fat32:
+                    return (val & 0x0FFFFFF8) >= 0x0FFFFFF8 || val == 0x05e5e5e5;
                 default: throw new ArgumentException("Unknown FAT type");
             }
         }
@@ -116,16 +120,19 @@ namespace DiscUtils.Fat
 
         internal uint GetNext(uint cluster)
         {
-            if (_type == FatType.Fat16)
-            {
-                return Utilities.ToUInt16LittleEndian(_buffer, (int)(cluster * 2));
+            if (_type == FatType.Fat16) {
+                if (cluster * 2 >= _buffer.Length) return 0xFFF8;
+                var val = Utilities.ToUInt16LittleEndian(_buffer, (int)(cluster * 2));
+                if (val == cluster) return 0xFFF8;
+                return val;
             }
-            else if (_type == FatType.Fat32)
-            {
+            else if (_type == FatType.Fat32) {
+                if (cluster * 4 >= _buffer.Length) return 0x0FFFFFF8;
                 return Utilities.ToUInt32LittleEndian(_buffer, (int)(cluster * 4)) & 0x0FFFFFFF;
             }
             else
             {
+                if (cluster + (cluster / 2) >= _buffer.Length) return 0x0FF8;
                 // FAT12
                 if ((cluster & 1) != 0)
                 {
