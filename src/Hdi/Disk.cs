@@ -22,6 +22,8 @@ namespace DiscUtils.Hdi {
 
         public uint PartitionOffset => _file.PartitionOffset;
 
+        public uint BytesPerBlock => _file.BytesPerBlock;
+
         public override VirtualDisk CreateDifferencingDisk(DiscFileSystem fileSystem, string path) {
             throw new System.NotImplementedException();
         }

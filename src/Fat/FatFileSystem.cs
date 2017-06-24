@@ -164,7 +164,7 @@ namespace DiscUtils.Fat
             _ownsData = ownsData;
         }
 
-        public FatFileSystem(Stream data, uint sectorSize) : base(new FatFileSystemOptions()) {
+        public FatFileSystem(Stream data, uint sectorSize, FileSystemParameters parameters) : base(new FatFileSystemOptions(parameters)) {
             _sectorSize = sectorSize;
             _dirCache = new Dictionary<uint, Directory>();
             _timeConverter = DefaultTimeConverter;
@@ -695,7 +695,7 @@ namespace DiscUtils.Fat
             stream.Position = 100;
             byte[] bytes = Utilities.ReadFully(stream, 512);
             ushort bpbBytesPerSec = Utilities.ToUInt16LittleEndian(bytes, 11);
-            if (bpbBytesPerSec != 512)
+            if (bpbBytesPerSec != 256 && bpbBytesPerSec != 512 && bpbBytesPerSec != 1024 && bpbBytesPerSec != 2048)
             {
                 return false;
             }

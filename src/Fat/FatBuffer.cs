@@ -95,7 +95,7 @@ namespace DiscUtils.Fat
         }
 
         internal bool IsEndOfChain(uint val) {
-            switch (_type)
+            /*switch (_type)
             {
                 case FatType.Fat12:
                     return (val & 0x0FFF) >= 0x0FF8 || val == 0x05e5 || val == 0xe5e;
@@ -103,6 +103,16 @@ namespace DiscUtils.Fat
                     return (val & 0xFFFF) >= 0xFFF8 || val == 0xe5e5 || val == 0x5e5e;
                 case FatType.Fat32:
                     return (val & 0x0FFFFFF8) >= 0x0FFFFFF8 || val == 0x05e5e5e5;
+                default: throw new ArgumentException("Unknown FAT type");
+            }*/
+            switch (_type)
+            {
+                case FatType.Fat12:
+                    return (val & 0x0FFF) >= 0x0FF8;
+                case FatType.Fat16:
+                    return (val & 0xFFFF) >= 0xFFF8;
+                case FatType.Fat32:
+                    return (val & 0x0FFFFFF8) >= 0x0FFFFFF8;
                 default: throw new ArgumentException("Unknown FAT type");
             }
         }
@@ -124,6 +134,7 @@ namespace DiscUtils.Fat
                 if (cluster * 2 >= _buffer.Length) return 0xFFF8;
                 var val = Utilities.ToUInt16LittleEndian(_buffer, (int)(cluster * 2));
                 if (val == cluster) return 0xFFF8;
+                //if (val == cluster || val == 0xe5e5) return 0xFFF8;
                 return val;
             }
             else if (_type == FatType.Fat32) {
@@ -134,13 +145,20 @@ namespace DiscUtils.Fat
             {
                 if (cluster + (cluster / 2) >= _buffer.Length) return 0x0FF8;
                 // FAT12
+                uint val;
                 if ((cluster & 1) != 0)
                 {
-                    return (uint)((Utilities.ToUInt16LittleEndian(_buffer, (int)(cluster + (cluster / 2))) >> 4) & 0x0FFF);
+                    val = (uint)((Utilities.ToUInt16LittleEndian(_buffer, (int)(cluster + (cluster / 2))) >> 4) & 0x0FFF);
                 }
                 else
                 {
-                    return (uint)(Utilities.ToUInt16LittleEndian(_buffer, (int)(cluster + (cluster / 2))) & 0x0FFF);
+                    val = (uint)(Utilities.ToUInt16LittleEndian(_buffer, (int)(cluster + (cluster / 2))) & 0x0FFF);
+                }
+                return val;
+                if (val == 0xe5e || val == 0x5e5) {
+                    return 0xff8;
+                } else {
+                    return val;
                 }
             }
         }

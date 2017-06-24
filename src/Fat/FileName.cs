@@ -55,7 +55,7 @@ namespace DiscUtils.Fat
                 byte b = bytes[nameIdx++];
                 if (b < 0x20 || Contains(InvalidBytes, b))
                 {
-                    throw new ArgumentException("Invalid character in file name '" + (char)b + "'", "name");
+                    //throw new ArgumentException("Invalid character in file name '" + (char)b + "'", "name");
                 }
 
                 _raw[rawIdx++] = b;
@@ -85,7 +85,7 @@ namespace DiscUtils.Fat
                 byte b = bytes[nameIdx++];
                 if (b < 0x20 || Contains(InvalidBytes, b))
                 {
-                    throw new ArgumentException("Invalid character in file extension '" + (char)b + "'", "name");
+                    //throw new ArgumentException("Invalid character in file extension '" + (char)b + "'", "name");
                 }
 
                 _raw[rawIdx++] = b;

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 
 namespace DiscUtils.Hdi {
     public sealed class DiskLayer :VirtualDiskLayer {
@@ -12,6 +13,7 @@ namespace DiscUtils.Hdi {
         private Ownership _ownStream;
         private const int blockOffset = 4096;
         private uint partitionOffset;
+        private uint bytesPerBlock;
 
         public override Geometry Geometry => Geometry.FromCapacity(_header.Hddsize, (int)_header.Sectorsize);
 
@@ -28,6 +30,10 @@ namespace DiscUtils.Hdi {
         public PC98Partition PartitionInfo => _partitionInfo;
 
         public uint PartitionOffset => partitionOffset;
+
+        public uint BytesPerBlock {
+            get { return bytesPerBlock; }
+        }
 
         public override SparseStream OpenContent(SparseStream parent, Ownership ownsParent) {
             var s = new DiskStream(_stream, partitionOffset);
@@ -83,7 +89,51 @@ s: Номер сектора*/
             var sector = _partitionInfo.Sector;
             //var offset = (cylinder * heads + head) * sectors + sector - 1;
             var offset = (cylinder * heads + head) * sectors + sector;
-            return offset * _header.Sectorsize;
+            var partitionOffset = offset * _header.Sectorsize;
+
+            var pos = _stream.Position;
+            _stream.Position = partitionOffset + blockOffset + 3;
+            var buf = new byte[8];
+            _stream.Read(buf, 0, 8);
+            Console.Write($@"Descr: {Encoding.ASCII.GetString(buf)} ");
+            var b1 = _stream.ReadByte();
+            var b2 = _stream.ReadByte();
+            var val = (b2 << 8) | b1;
+            bytesPerBlock = (uint)val;
+            Console.Write($@"Bytes per block: {val:X4} ");
+            b1 = _stream.ReadByte();
+            Console.Write($@"Blocks per unit: {b1:X2} ");
+            b1 = _stream.ReadByte();
+            b2 = _stream.ReadByte();
+            val = (b2 << 8) | b1;
+            Console.Write($@"Reserved: {val:X4} ");
+            b1 = _stream.ReadByte();
+            Console.Write($@"FATs: {b1:X2} ");
+            b1 = _stream.ReadByte();
+            b2 = _stream.ReadByte();
+            val = (b2 << 8) | b1;
+            Console.Write($@"Root entries: {val:X4} ");
+            b1 = _stream.ReadByte();
+            b2 = _stream.ReadByte();
+            val = (b2 << 8) | b1;
+            Console.Write($@"Total blocks: {val:X4} ");
+            b1 = _stream.ReadByte();
+            Console.Write($@"Media: {b1:X2} ");
+            b1 = _stream.ReadByte();
+            b2 = _stream.ReadByte();
+            val = (b2 << 8) | b1;
+            Console.Write($@"FAT size: {val:X4} ");
+            b1 = _stream.ReadByte();
+            b2 = _stream.ReadByte();
+            val = (b2 << 8) | b1;
+            Console.Write($@"Blocks per track: {val:X4} ");
+            b1 = _stream.ReadByte();
+            b2 = _stream.ReadByte();
+            val = (b2 << 8) | b1;
+            Console.WriteLine($@"Heads: {val:X4} ");
+
+            _stream.Position = pos;
+            return partitionOffset;
         }
 
         public static DiskLayer InitializeFixed(Stream stream, Ownership ownsStream, HddType capacity) {
