@@ -24,8 +24,8 @@ namespace Test {
             file = @"S:\Translations\HDI\MacrossCompilation.hdi";
             file = @"S:\Translations\HDI\DK4.hdi";
             //Test3(file);
-            //Test4();
-            Test5();
+            Test4();
+            //Test5();
             //Test6();
         }
 
@@ -47,32 +47,31 @@ namespace Test {
             Console.WriteLine($@"===================== {filename} ===================");
             using (var disk = new Disk(filename)) {
                 var header = disk.Header;
-                Console.WriteLine($@"	Type: {header.Hddtype}, Size: {header.Hddsize}, SectorSize: 0x{header.Sectorsize:X2}, Sectors: {header.Sectors}, Surfaces: {header.Surfaces}, Cylinders: {header.Cylinders}");
+                Console.WriteLine(
+                    $@"	Type: {header.Hddtype}, Size: {header.Hddsize}, SectorSize: 0x{header.Sectorsize:X2}, Sectors: {
+                            header.Sectors
+                        }, Surfaces: {header.Surfaces}, Cylinders: {header.Cylinders}");
                 var part = disk.PartitionInfo;
-                Console.WriteLine($@"	Bootable: {part.Bootable}, PartType: {part.PartitionType}, Active: {part.Active}, FSType: {part.FsType}, IPL section: 0x{part.IplSect:X2}, IPL Head: 0x{part.IplHead:X2}, IPL Cyl: 0x{part.IplCyl:X4}, Sector: 0x{part.Sector:X2}, Head: 0x{part.Head:X2}, Cylinder: 0x{part.Cylinder:X4}, EndSector: 0x{part.EndSector:X2}, EndHead: 0x{part.EndHead:X2}, EndCyl: 0x{part.EndCyl:X4}, Name: {part.Name}");
+                Console.WriteLine(
+                    $@"	Bootable: {part.Bootable}, PartType: {part.PartitionType}, Active: {part.Active}, FSType: {
+                            part.FsType
+                        }, IPL section: 0x{part.IplSect:X2}, IPL Head: 0x{part.IplHead:X2}, IPL Cyl: 0x{
+                            part.IplCyl
+                        :X4}, Sector: 0x{part.Sector:X2}, Head: 0x{part.Head:X2}, Cylinder: 0x{
+                            part.Cylinder
+                        :X4}, EndSector: 0x{part.EndSector:X2}, EndHead: 0x{part.EndHead:X2}, EndCyl: 0x{
+                            part.EndCyl
+                        :X4}, Name: {part.Name}");
                 Console.WriteLine($@"   Partition offset: 0x{disk.PartitionOffset:X6}");
                 //using (var fs = new FatFileSystem(disk.Content, disk.Header.Sectorsize)) {
-                var sizes = new uint[] {256, 512, 1024, 2048};
-                List<string> prevList = null;
-                foreach (var size in sizes) {
-                    if (size == 0x800 && (disk.Header.Sectorsize == 0x100 || SkipFile(filename))) continue;
-                    using (var fs = new FatFileSystem(disk.Content, size, parameters)) {
-                        List<string> list = null;
-                        try {
-                            list = tryWalkDir(fs, @"\", null);
-                            list = list.OrderBy(z => z).ToList();
-                            if (prevList != null && !list.SequenceEqual(prevList)) {
-                                Console.WriteLine($@"0x{size:X4} - File list mismatch");
-                            } else {
-                                Console.WriteLine($@"0x{size:X4} - OK");
-                            }
-                            prevList = list;
-                        } catch (Exception ex) {
-                            Console.WriteLine($@"0x{size:X4} - {ex.Message}");
-                        }
+                using (var fs = new FatFileSystem(disk.Content, parameters)) {
+                    try {
+                        tryWalkDir(fs, @"\", null);
+                        Console.WriteLine($@"OK");
+                    } catch (Exception ex) {
+                        Console.WriteLine($@"{ex.Message}");
                     }
                 }
-                
             }
         }
 
@@ -121,7 +120,7 @@ namespace Test {
                 Console.WriteLine($@"	Bootable: {part.Bootable}, PartType: {part.PartitionType}, Active: {part.Active}, FSType: {part.FsType}, IPL section: 0x{part.IplSect:X2}, IPL Head: 0x{part.IplHead:X2}, IPL Cyl: 0x{part.IplCyl:X4}, Sector: 0x{part.Sector:X2}, Head: 0x{part.Head:X2}, Cylinder: 0x{part.Cylinder:X4}, EndSector: 0x{part.EndSector:X2}, EndHead: 0x{part.EndHead:X2}, EndCyl: 0x{part.EndCyl:X4}, Name: {part.Name}");
                 Console.WriteLine($@"   Partition offset: 0x{disk.PartitionOffset:X6}");
                 //using (var fs = new FatFileSystem(disk.Content, disk.Header.Sectorsize)) {
-                using (var fs = new FatFileSystem(disk.Content, disk.BytesPerBlock, parameters)) {
+                using (var fs = new FatFileSystem(disk.Content, parameters)) {
                     walkDir(fs, @"\", 0);
                     //tryWalkDir(fs, @"\", null);
                 }

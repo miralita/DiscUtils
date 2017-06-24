@@ -164,8 +164,7 @@ namespace DiscUtils.Fat
             _ownsData = ownsData;
         }
 
-        public FatFileSystem(Stream data, uint sectorSize, FileSystemParameters parameters) : base(new FatFileSystemOptions(parameters)) {
-            _sectorSize = sectorSize;
+        public FatFileSystem(Stream data, FileSystemParameters parameters) : base(new FatFileSystemOptions(parameters)) {
             _dirCache = new Dictionary<uint, Directory>();
             _timeConverter = DefaultTimeConverter;
             Initialize(data);
@@ -1801,6 +1800,10 @@ namespace DiscUtils.Fat
             }
         }
 
+        private static uint DetectSectorSize(byte[] bpb) {
+            return Utilities.ToUInt16LittleEndian(bpb, 11);
+        }
+
         private static bool IsRootPath(string path)
         {
             return string.IsNullOrEmpty(path) || path == @"\";
@@ -1818,6 +1821,7 @@ namespace DiscUtils.Fat
             _bootSector = Utilities.ReadSector(_data);
 
             _type = DetectFATType(_bootSector);
+            _sectorSize = DetectSectorSize(_bootSector);
 
             ReadBPB();
 
