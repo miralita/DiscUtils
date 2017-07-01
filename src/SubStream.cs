@@ -20,6 +20,8 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
+using System.Text;
+
 namespace DiscUtils
 {
     using System;
@@ -33,6 +35,7 @@ namespace DiscUtils
         private long _length;
 
         private Stream _parent;
+        public Encoding FileNameEncoding { get; set; }
         private Ownership _ownsParent;
 
         public SubStream(Stream parent, long first, long length)

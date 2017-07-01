@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using DiscUtils.Partitions;
 
 namespace DiscUtils.Hdi {
     public sealed class DiskLayer :VirtualDiskLayer {
@@ -8,14 +9,16 @@ namespace DiscUtils.Hdi {
         private long _capacity;
         private FileLocator _relativeFileLocator;
         private DiskHeader _header;
-        private PC98Partition _partitionInfo;
+        private PC98PartitionRecord _partitionInfo;
         private Stream _stream;
         private Ownership _ownStream;
         private const int blockOffset = 4096;
         private uint partitionOffset;
         private uint bytesPerBlock;
 
-        public override Geometry Geometry => Geometry.FromCapacity(_header.Hddsize, (int)_header.Sectorsize);
+        //public override Geometry Geometry => Geometry.FromCapacity(_header.Hddsize, (int)_header.Sectorsize);
+        //public Geometry(int cylinders, int headsPerCylinder, int sectorsPerTrack, int bytesPerSector)
+        public override Geometry Geometry => new Geometry((int)_header.Cylinders, (int)_header.Surfaces, (int)_header.Sectors, (int)_header.Sectorsize);
 
         public override bool IsSparse => false;
 
@@ -27,7 +30,7 @@ namespace DiscUtils.Hdi {
 
         public DiskHeader Header => _header;
 
-        public PC98Partition PartitionInfo => _partitionInfo;
+        public PC98PartitionRecord PartitionInfo => _partitionInfo;
 
         public uint PartitionOffset => partitionOffset;
 
@@ -36,7 +39,8 @@ namespace DiscUtils.Hdi {
         }
 
         public override SparseStream OpenContent(SparseStream parent, Ownership ownsParent) {
-            var s = new DiskStream(_stream, partitionOffset);
+            //var s = new DiskStream(_stream, partitionOffset);
+            var s = new DiskStream(_stream, blockOffset);
             return s;
         }
 
@@ -49,7 +53,7 @@ namespace DiscUtils.Hdi {
             _header = DiskHeader.Read(stream);
             // skip bootloader
             stream.Position = blockOffset + _header.Sectorsize;
-            _partitionInfo = new PC98Partition(stream);
+            _partitionInfo = new PC98PartitionRecord(stream);
             partitionOffset = CalcPartitionOffset() + blockOffset;
         }
 

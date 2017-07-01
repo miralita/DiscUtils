@@ -145,7 +145,8 @@
     <Compile Include="Hdi\DiskLayer.cs" />
     <Compile Include="Hdi\DiskStream.cs" />
     <Compile Include="Hdi\HddType.cs" />
-    <Compile Include="Hdi\PC98Partition.cs" />
+    <Compile Include="Partitions\PC98PartitionInfo.cs" />
+    <Compile Include="Partitions\PC98PartitionRecord.cs" />
     <Compile Include="Iso9660\RockRidge\ChildLinkSystemUseEntry.cs" />
     <Compile Include="ClusterMap.cs" />
     <Compile Include="Compression\Adler32.cs" />
@@ -583,6 +584,8 @@
     <Compile Include="Partitions\PartitionTableFactoryAttribute.cs" />
     <Compile Include="Partitions\PartitionInfo.cs" />
     <Compile Include="Partitions\PartitionTable.cs" />
+    <Compile Include="Partitions\PC98PartitionTable.cs" />
+    <Compile Include="Partitions\PC98PartitionTableFactory.cs" />
     <Compile Include="Partitions\WellKnownPartitionType.cs" />
     <Compile Include="PassthroughStreamBuilder.cs" />
     <Compile Include="Partitions\PartitionTableFactory.cs" />

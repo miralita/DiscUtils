@@ -1,10 +1,13 @@
 using System.Collections.Generic;
 using System.IO;
+using DiscUtils.Partitions;
 
 namespace DiscUtils.Hdi {
     public sealed class Disk : VirtualDisk {
         private DiskLayer _file;
         private SparseStream _content;
+        private FileAccess access;
+
         public override Geometry Geometry => _file.Geometry;
         public override VirtualDiskClass DiskClass => VirtualDiskClass.HardDisk;
         public override long Capacity => _file.Capacity;
@@ -18,7 +21,7 @@ namespace DiscUtils.Hdi {
         public override VirtualDiskTypeInfo DiskTypeInfo => DiskFactory.MakeDiskTypeInfo();
         public DiskHeader Header => _file.Header;
 
-        public PC98Partition PartitionInfo => _file.PartitionInfo;
+        public PC98PartitionRecord PartitionInfo => _file.PartitionInfo;
 
         public uint PartitionOffset => _file.PartitionOffset;
 
@@ -47,6 +50,10 @@ namespace DiscUtils.Hdi {
 
         public Disk(Stream stream, Ownership ownStream) {
             _file = new DiskLayer(stream, ownStream);
+        }
+
+        public Disk(string path, FileAccess access) : this(path) {
+            this.access = access;
         }
 
         public static Disk InitializeFixed(Stream stream, Ownership ownsStream, HddType capacity) {

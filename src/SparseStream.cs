@@ -20,6 +20,8 @@
 // DEALINGS IN THE SOFTWARE.
 //
 
+using System.Text;
+
 namespace DiscUtils
 {
     using System;
@@ -43,6 +45,8 @@ namespace DiscUtils
         {
             get;
         }
+
+        public Encoding FileNameEncoding { get; set; }
 
         /// <summary>
         /// Converts any stream into a sparse stream.

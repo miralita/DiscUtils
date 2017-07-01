@@ -138,10 +138,7 @@ namespace DiscUtils
         /// <summary>
         /// Gets the size of the volume, in bytes.
         /// </summary>
-        public override long Length
-        {
-            get { return (_partitionInfo == null) ? _disk.Capacity : _partitionInfo.SectorCount * _disk.SectorSize; }
-        }
+        public override long Length => _partitionInfo?.SectorCount * _disk.SectorSize ?? _disk.Capacity;
 
         /// <summary>
         /// Gets the stable identity for this physical volume.

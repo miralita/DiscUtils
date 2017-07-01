@@ -12,6 +12,7 @@ using DiscUtils.Hdi;
 namespace Test {
     internal class Program {
         private static FileSystemParameters parameters;
+        private static string exportPath = @"D:\Translations\HDI\Export";
         public static void Main(string[] args) {
             parameters = new FileSystemParameters();
             parameters.FileNameEncoding = Encoding.GetEncoding("shift-jis");
@@ -23,10 +24,24 @@ namespace Test {
             file = @"S:\Translations\HDI\Star Striders (J).HDI";
             file = @"S:\Translations\HDI\MacrossCompilation.hdi";
             file = @"S:\Translations\HDI\DK4.hdi";
-            //Test3(file);
-            Test4();
+            file = @"S:\Translations\HDI\Harlem Blade (1996)(Giga).hdi";
+            Test3(file);
+            //Test4();
             //Test5();
             //Test6();
+            //ExportFile(file);
+            //TestPartition(file);
+        }
+
+        private static void TestPartition(string file) {
+            using (var disk = new Disk(file)) {
+                PartitionTable.IsPartitioned(disk.Content);
+                var pt = PartitionTable.GetPartitionTables(disk);
+                var p = pt[0].Partitions[0];
+                var fs = new FatFileSystem(p.Open());
+                var files = fs.GetFiles(@"\");
+                walkDir(fs, @"\", 0);
+            }
         }
 
         public static void Test6() {
@@ -40,6 +55,44 @@ namespace Test {
                     //continue;
                 }
                 ListCheck(file);
+            }
+        }
+
+        public static void ExportFile(string filename) {
+            Console.WriteLine($@"===================== {filename} ===================");
+            using (var disk = new Disk(filename)) {
+                using (var fs = new FatFileSystem(PartitionTable.GetPartitionTables(disk)[0].Partitions[0].Open())) {
+                    var path = Path.Combine(exportPath, new FileInfo(filename).Name.Replace(".hdi", ""));
+                    ExportFs(fs, @"\", path);
+                }
+            }
+        }
+
+        private static void ExportFs(FatFileSystem fs, string dirname, string path) {
+            Directory.CreateDirectory(path);
+            var dirs = fs.GetDirectories(dirname);
+            Array.Sort(dirs);
+            foreach (var dir in dirs) {
+                Console.WriteLine(dir);
+                var newpath = Path.Combine(path, new FileInfo(dir).Name);
+                ExportFs(fs, dir, newpath);
+            }
+            var files = fs.GetFiles(dirname);
+            Array.Sort(files);
+            foreach (var file in files) {
+                var length = fs.GetFileLength(file) / 1024.0;
+                Console.WriteLine(file + $@" ({length:F2} Kb)");
+                var exportPath = Path.Combine(path, new FileInfo(file).Name);
+                using (var outfh = File.OpenWrite(exportPath)) {
+                    using (var infh = fs.OpenFile(file, FileMode.Open)) {
+                        var buf = new byte[1024];
+                        var n = 0;
+                        do {
+                            n = infh.Read(buf, 0, 1024);
+                            outfh.Write(buf, 0, n);
+                        } while (n == 1024);
+                    }
+                }
             }
         }
 
@@ -64,7 +117,7 @@ namespace Test {
                         :X4}, Name: {part.Name}");
                 Console.WriteLine($@"   Partition offset: 0x{disk.PartitionOffset:X6}");
                 //using (var fs = new FatFileSystem(disk.Content, disk.Header.Sectorsize)) {
-                using (var fs = new FatFileSystem(disk.Content, parameters)) {
+                using (var fs = new FatFileSystem(PartitionTable.GetPartitionTables(disk)[0].Partitions[0].Open())) {
                     try {
                         tryWalkDir(fs, @"\", null);
                         Console.WriteLine($@"OK");
@@ -73,22 +126,6 @@ namespace Test {
                     }
                 }
             }
-        }
-
-        private static bool SkipFile(string name) {
-            var files = new string[] {
-                @"S:\Translations\HDI\Briganty (1995)(Giga).hdi",
-                @"S:\Translations\HDI\Angel Night (y) (FourNine) [hdi].hdi",
-                @"S:\Translations\HDI\Brandish 3 (1994)(Falcom).hdi",
-                @"S:\Translations\HDI\Dragon Slayer II - Revival Xanadu (y) (Falcom) [hdi].hdi",
-                @"S:\Translations\HDI\GAO1.HDI",
-                @"S:\Translations\HDI\GAO2.HDI",
-                @"S:\Translations\HDI\GINGA4.HDI",
-                @"S:\Translations\HDI\Harlem Blade (1996)(Giga).hdi",
-                @"S:\Translations\HDI\Mobile Suit Gundam 0083 - Stardust Operation.hdi",
-                @"S:\Translations\HDI\Progenitor (J).hdi"
-            };
-            return files.Any(file => file == name);
         }
 
         private static List<string> tryWalkDir(FatFileSystem fs, string dirname, List<string> fileList) {
@@ -120,7 +157,7 @@ namespace Test {
                 Console.WriteLine($@"	Bootable: {part.Bootable}, PartType: {part.PartitionType}, Active: {part.Active}, FSType: {part.FsType}, IPL section: 0x{part.IplSect:X2}, IPL Head: 0x{part.IplHead:X2}, IPL Cyl: 0x{part.IplCyl:X4}, Sector: 0x{part.Sector:X2}, Head: 0x{part.Head:X2}, Cylinder: 0x{part.Cylinder:X4}, EndSector: 0x{part.EndSector:X2}, EndHead: 0x{part.EndHead:X2}, EndCyl: 0x{part.EndCyl:X4}, Name: {part.Name}");
                 Console.WriteLine($@"   Partition offset: 0x{disk.PartitionOffset:X6}");
                 //using (var fs = new FatFileSystem(disk.Content, disk.Header.Sectorsize)) {
-                using (var fs = new FatFileSystem(disk.Content, parameters)) {
+                using (var fs = new FatFileSystem(PartitionTable.GetPartitionTables(disk)[0].Partitions[0].Open())) {
                     walkDir(fs, @"\", 0);
                     //tryWalkDir(fs, @"\", null);
                 }
@@ -168,7 +205,8 @@ namespace Test {
             Array.Sort(files);
             foreach (var file in files) {
                 var length = fs.GetFileLength(file) / 1024.0;
-                Console.WriteLine(prefix + file + $@" ({length:F2} Kb)");
+                var info = fs.GetFileInfo(file);
+                Console.WriteLine(prefix + file + $@" ({length:F2} Kb) {info.CreationTime} {info.LastAccessTime} {info.LastWriteTime}");
             }
         }
 

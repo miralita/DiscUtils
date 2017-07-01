@@ -48,6 +48,7 @@ namespace DiscUtils.Hdi
             dataOffset = offset;
             this.stream = stream;
             stream.Position = offset;
+            this.FileNameEncoding = Encoding.GetEncoding("shift-jis");
         }
 
         protected override void Dispose(bool disposing) {

@@ -691,7 +691,7 @@ namespace DiscUtils.Fat
                 return false;
             }
 
-            stream.Position = 100;
+            stream.Position = 0;
             byte[] bytes = Utilities.ReadFully(stream, 512);
             ushort bpbBytesPerSec = Utilities.ToUInt16LittleEndian(bytes, 11);
             if (bpbBytesPerSec != 256 && bpbBytesPerSec != 512 && bpbBytesPerSec != 1024 && bpbBytesPerSec != 2048)
@@ -1814,8 +1814,17 @@ namespace DiscUtils.Fat
             return toUtc ? time.ToUniversalTime() : time.ToLocalTime();
         }
 
-        private void Initialize(Stream data)
-        {
+        private void Initialize(Stream data) {
+            var encoding = (data as SparseStream)?.FileNameEncoding;
+            if (encoding == null) {
+                encoding = (data as SubStream)?.FileNameEncoding;
+            }
+            if (encoding != null) {
+                var opts = this.Options as FatFileSystemOptions;
+                if (opts != null) {
+                    opts.FileNameEncoding = encoding;
+                }
+            }
             _data = data;
             _data.Position = 0;
             _bootSector = Utilities.ReadSector(_data);

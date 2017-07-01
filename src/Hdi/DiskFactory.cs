@@ -1,5 +1,4 @@
 using System.IO;
-using DiscUtils.Optical;
 
 namespace DiscUtils.Hdi {
     [VirtualDiskFactory("HDI", ".hdi")]
@@ -19,12 +18,12 @@ namespace DiscUtils.Hdi {
         }
 
         public override VirtualDisk OpenDisk(string path, FileAccess access) {
-            return new Disc(path, access);
+            return new Disk(path, access);
         }
 
         public override VirtualDisk OpenDisk(FileLocator locator, string path, FileAccess access) {
             var share = access == FileAccess.Read ? FileShare.Read : FileShare.None;
-            return new Disc(locator.Open(path, FileMode.Open, access, share), Ownership.Dispose);
+            return new Disk(locator.Open(path, FileMode.Open, access, share), Ownership.Dispose);
         }
 
         public override VirtualDiskLayer OpenDiskLayer(FileLocator locator, string path, FileAccess access) {

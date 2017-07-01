@@ -1920,6 +1920,818 @@
             Old revision, not supported by DiscUtils.
             </summary>
         </member>
+        <member name="M:DiscUtils.Partitions.BiosExtendedPartitionTable.GetMetadataDiskExtents">
+            <summary>
+            Gets all of the disk ranges containing partition table data.
+            </summary>
+            <returns>Set of stream extents, indicated as byte offset from the start of the disk.</returns>
+        </member>
+        <member name="T:DiscUtils.Partitions.BiosPartitionedDiskBuilder">
+            <summary>
+            Builds a stream with the contents of a BIOS partitioned disk.
+            </summary>
+            <remarks>
+            This class assembles a disk image dynamically in memory.  The
+            constructed stream will read data from the partition content
+            streams only when a client of this class tries to read from
+            that partition.
+            </remarks>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionedDiskBuilder.#ctor(System.Int64,DiscUtils.Geometry)">
+            <summary>
+            Initializes a new instance of the BiosPartitionedDiskBuilder class.
+            </summary>
+            <param name="capacity">The capacity of the disk (in bytes).</param>
+            <param name="biosGeometry">The BIOS geometry of the disk.</param>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionedDiskBuilder.#ctor(System.Int64,System.Byte[],DiscUtils.Geometry)">
+            <summary>
+            Initializes a new instance of the BiosPartitionedDiskBuilder class.
+            </summary>
+            <param name="capacity">The capacity of the disk (in bytes).</param>
+            <param name="bootSectors">The boot sector(s) of the disk.</param>
+            <param name="biosGeometry">The BIOS geometry of the disk.</param>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionedDiskBuilder.#ctor(DiscUtils.VirtualDisk)">
+            <summary>
+            Initializes a new instance of the BiosPartitionedDiskBuilder class by
+            cloning the partition structure of a source disk.
+            </summary>
+            <param name="sourceDisk">The disk to clone.</param>
+        </member>
+        <member name="P:DiscUtils.Partitions.BiosPartitionedDiskBuilder.PartitionTable">
+            <summary>
+            Gets the partition table in the disk.
+            </summary>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionedDiskBuilder.SetPartitionContent(System.Int32,DiscUtils.SparseStream)">
+            <summary>
+            Sets a stream representing the content of a partition in the partition table.
+            </summary>
+            <param name="index">The index of the partition.</param>
+            <param name="stream">The stream with the contents of the partition.</param>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionedDiskBuilder.UpdateBiosGeometry(DiscUtils.Geometry)">
+            <summary>
+            Updates the CHS fields in partition records to reflect a new BIOS geometry.
+            </summary>
+            <param name="geometry">The disk's new BIOS geometry.</param>
+            <remarks>The partitions are not relocated to a cylinder boundary, just the CHS fields are updated on the
+            assumption the LBA fields are definitive.</remarks>
+        </member>
+        <member name="T:DiscUtils.Partitions.BiosPartitionInfo">
+            <summary>
+            Provides access to partition records in a BIOS (MBR) partition table.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.FirstSector">
+            <summary>
+            Gets the first sector of the partion (relative to start of disk) as a Logical Block Address.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.LastSector">
+            <summary>
+            Gets the last sector of the partion (relative to start of disk) as a Logical Block Address (inclusive).
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.GuidType">
+            <summary>
+            Always returns <see cref="T:System.Guid"/>.Empty.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.BiosType">
+            <summary>
+            Gets the type of the partition.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.TypeAsString">
+            <summary>
+            Gets the type of the partition as a string.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.IsActive">
+            <summary>
+            Gets a value indicating whether this partition is active (bootable).
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.Start">
+            <summary>
+            Gets the start of the partition as a CHS address.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.End">
+            <summary>
+            Gets the end (inclusive) of the partition as a CHS address.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.PrimaryIndex">
+            <summary>
+            Gets the index of the partition in the primary partition table, or <c>-1</c> if not a primary partition.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.IsPrimary">
+            <summary>
+            Gets a value indicating whether the partition is a primary (rather than extended) partition.
+            </summary>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionInfo.Open">
+            <summary>
+            Opens a stream to access the content of the partition.
+            </summary>
+            <returns>The new stream.</returns>
+        </member>
+        <member name="T:DiscUtils.Partitions.BiosPartitionTable">
+            <summary>
+            Represents a BIOS (MBR) Partition Table.
+            </summary>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.#ctor(DiscUtils.VirtualDisk)">
+            <summary>
+            Initializes a new instance of the BiosPartitionTable class.
+            </summary>
+            <param name="disk">The disk containing the partition table.</param>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.#ctor(System.IO.Stream,DiscUtils.Geometry)">
+            <summary>
+            Initializes a new instance of the BiosPartitionTable class.
+            </summary>
+            <param name="disk">The stream containing the disk data.</param>
+            <param name="diskGeometry">The geometry of the disk.</param>
+        </member>
+        <member name="P:DiscUtils.Partitions.BiosPartitionTable.DiskGuid">
+            <summary>
+            Gets the GUID that uniquely identifies this disk, if supported (else returns <c>null</c>).
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.BiosPartitionTable.BiosUserPartitions">
+            <summary>
+            Gets a collection of the partitions for storing Operating System file-systems.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.BiosPartitionTable.Partitions">
+            <summary>
+            Gets a collection of the partitions for storing Operating System file-systems.
+            </summary>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.DetectGeometry(System.IO.Stream)">
+            <summary>
+            Makes a best guess at the geometry of a disk.
+            </summary>
+            <param name="disk">String containing the disk image to detect the geometry from.</param>
+            <returns>The detected geometry.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.IsValid(System.IO.Stream)">
+            <summary>
+            Indicates if a stream contains a valid partition table.
+            </summary>
+            <param name="disk">The stream to inspect.</param>
+            <returns><c>true</c> if the partition table is valid, else <c>false</c>.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.Initialize(DiscUtils.VirtualDisk)">
+            <summary>
+            Creates a new partition table on a disk.
+            </summary>
+            <param name="disk">The disk to initialize.</param>
+            <returns>An object to access the newly created partition table.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.Initialize(DiscUtils.VirtualDisk,DiscUtils.Partitions.WellKnownPartitionType)">
+            <summary>
+            Creates a new partition table on a disk containing a single partition.
+            </summary>
+            <param name="disk">The disk to initialize.</param>
+            <param name="type">The partition type for the single partition.</param>
+            <returns>An object to access the newly created partition table.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.Initialize(System.IO.Stream,DiscUtils.Geometry)">
+            <summary>
+            Creates a new partition table on a disk.
+            </summary>
+            <param name="disk">The stream containing the disk data.</param>
+            <param name="diskGeometry">The geometry of the disk.</param>
+            <returns>An object to access the newly created partition table.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.Create(DiscUtils.Partitions.WellKnownPartitionType,System.Boolean)">
+            <summary>
+            Creates a new partition that encompasses the entire disk.
+            </summary>
+            <param name="type">The partition type.</param>
+            <param name="active">Whether the partition is active (bootable).</param>
+            <returns>The index of the partition.</returns>
+            <remarks>The partition table must be empty before this method is called,
+            otherwise IOException is thrown.</remarks>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.Create(System.Int64,DiscUtils.Partitions.WellKnownPartitionType,System.Boolean)">
+            <summary>
+            Creates a new primary partition with a target size.
+            </summary>
+            <param name="size">The target size (in bytes).</param>
+            <param name="type">The partition type.</param>
+            <param name="active">Whether the partition is active (bootable).</param>
+            <returns>The index of the new partition.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.CreateAligned(DiscUtils.Partitions.WellKnownPartitionType,System.Boolean,System.Int32)">
+            <summary>
+            Creates a new aligned partition that encompasses the entire disk.
+            </summary>
+            <param name="type">The partition type.</param>
+            <param name="active">Whether the partition is active (bootable).</param>
+            <param name="alignment">The alignment (in bytes).</param>
+            <returns>The index of the partition.</returns>
+            <remarks>The partition table must be empty before this method is called,
+            otherwise IOException is thrown.</remarks>
+            <remarks>
+            Traditionally partitions were aligned to the physical structure of the underlying disk,
+            however with modern storage greater efficiency is acheived by aligning partitions on
+            large values that are a power of two.
+            </remarks>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.CreateAligned(System.Int64,DiscUtils.Partitions.WellKnownPartitionType,System.Boolean,System.Int32)">
+            <summary>
+            Creates a new aligned partition with a target size.
+            </summary>
+            <param name="size">The target size (in bytes).</param>
+            <param name="type">The partition type.</param>
+            <param name="active">Whether the partition is active (bootable).</param>
+            <param name="alignment">The alignment (in bytes).</param>
+            <returns>The index of the new partition.</returns>
+            <remarks>
+            Traditionally partitions were aligned to the physical structure of the underlying disk,
+            however with modern storage greater efficiency is achieved by aligning partitions on
+            large values that are a power of two.
+            </remarks>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.Delete(System.Int32)">
+            <summary>
+            Deletes a partition at a given index.
+            </summary>
+            <param name="index">The index of the partition.</param>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.CreatePrimaryByCylinder(System.Int32,System.Int32,System.Byte,System.Boolean)">
+            <summary>
+            Creates a new Primary Partition that occupies whole cylinders, for best compatibility.
+            </summary>
+            <param name="first">The first cylinder to include in the partition (inclusive).</param>
+            <param name="last">The last cylinder to include in the partition (inclusive).</param>
+            <param name="type">The BIOS (MBR) type of the new partition.</param>
+            <param name="markActive">Whether to mark the partition active (bootable).</param>
+            <returns>The index of the new partition.</returns>
+            <remarks>If the cylinder 0 is given, the first track will not be used, to reserve space
+            for the meta-data at the start of the disk.</remarks>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.CreatePrimaryBySector(System.Int64,System.Int64,System.Byte,System.Boolean)">
+            <summary>
+            Creates a new Primary Partition, specified by Logical Block Addresses.
+            </summary>
+            <param name="first">The LBA address of the first sector (inclusive).</param>
+            <param name="last">The LBA address of the last sector (inclusive).</param>
+            <param name="type">The BIOS (MBR) type of the new partition.</param>
+            <param name="markActive">Whether to mark the partition active (bootable).</param>
+            <returns>The index of the new partition.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.SetActivePartition(System.Int32)">
+            <summary>
+            Sets the active partition.
+            </summary>
+            <param name="index">The index of the primary partition to mark bootable, or <c>-1</c> for none.</param>
+            <remarks>The supplied index is the index within the primary partition, see <c>PrimaryIndex</c> on <c>BiosPartitionInfo</c>.</remarks>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.GetMetadataDiskExtents">
+            <summary>
+            Gets all of the disk ranges containing partition table metadata.
+            </summary>
+            <returns>Set of stream extents, indicated as byte offset from the start of the disk.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTable.UpdateBiosGeometry(DiscUtils.Geometry)">
+            <summary>
+            Updates the CHS fields in partition records to reflect a new BIOS geometry.
+            </summary>
+            <param name="geometry">The disk's new BIOS geometry.</param>
+            <remarks>The partitions are not relocated to a cylinder boundary, just the CHS fields are updated on the
+            assumption the LBA fields are definitive.</remarks>
+        </member>
+        <member name="T:DiscUtils.Partitions.BiosPartitionTypes">
+            <summary>
+            Convenient access to well-known BIOS (MBR) Partition Types.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.Fat12">
+            <summary>
+            Microsoft FAT12 (fewer than 32,680 sectors in the volume).
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.Fat16Small">
+            <summary>
+            Microsoft FAT16 (32,680–65,535 sectors or 16 MB–33 MB).
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.Extended">
+            <summary>
+            Extended Partition (contains other partitions).
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.Fat16">
+            <summary>
+            Microsoft BIGDOS FAT16 (33 MB–4 GB).
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.Ntfs">
+            <summary>
+            Installable File System (NTFS).
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.Fat32">
+            <summary>
+            Microsoft FAT32.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.Fat32Lba">
+            <summary>
+            Microsoft FAT32, accessed using Int13h BIOS LBA extensions.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.Fat16Lba">
+            <summary>
+            Microsoft BIGDOS FAT16, accessed using Int13h BIOS LBA extensions.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.ExtendedLba">
+            <summary>
+            Extended Partition (contains other partitions), accessed using Int13h BIOS LBA extensions.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.WindowsDynamicVolume">
+            <summary>
+            Windows Logical Disk Manager dynamic volume.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.LinuxSwap">
+            <summary>
+            Linux Swap.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.LinuxNative">
+            <summary>
+            Linux Native (ext2 and friends).
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.LinuxLvm">
+            <summary>
+            Linux Logical Volume Manager (LVM).
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.GptProtective">
+            <summary>
+            GUID Partition Table (GPT) protective partition, fills entire disk.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.EfiSystem">
+            <summary>
+            EFI System partition on an MBR disk.
+            </summary>
+        </member>
+        <member name="M:DiscUtils.Partitions.BiosPartitionTypes.ToString(System.Byte)">
+            <summary>
+            Provides a string representation of some known BIOS partition types.
+            </summary>
+            <param name="type">The partition type to represent as a string.</param>
+            <returns>The string representation.</returns>
+        </member>
+        <member name="T:DiscUtils.Partitions.GuidPartitionInfo">
+            <summary>
+            Provides access to partition records in a GUID partition table.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.GuidPartitionInfo.FirstSector">
+            <summary>
+            Gets the first sector of the partion (relative to start of disk) as a Logical Block Address.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.GuidPartitionInfo.LastSector">
+            <summary>
+            Gets the last sector of the partion (relative to start of disk) as a Logical Block Address (inclusive).
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.GuidPartitionInfo.GuidType">
+            <summary>
+            Gets the type of the partition, as a GUID.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.GuidPartitionInfo.BiosType">
+            <summary>
+            Always returns Zero.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.GuidPartitionInfo.TypeAsString">
+            <summary>
+            Gets the type of the partition as a string.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.GuidPartitionInfo.Name">
+            <summary>
+            Gets the name of the partition.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.GuidPartitionInfo.Attributes">
+            <summary>
+            Gets the attributes of the partition.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.GuidPartitionInfo.Identity">
+            <summary>
+            Gets the unique identity of this specific partition.
+            </summary>
+        </member>
+        <member name="M:DiscUtils.Partitions.GuidPartitionInfo.Open">
+            <summary>
+            Opens a stream to access the content of the partition.
+            </summary>
+            <returns>The new stream.</returns>
+        </member>
+        <member name="T:DiscUtils.Partitions.GuidPartitionTable">
+            <summary>
+            Represents a GUID Partition Table.
+            </summary>
+        </member>
+        <member name="M:DiscUtils.Partitions.GuidPartitionTable.#ctor(DiscUtils.VirtualDisk)">
+            <summary>
+            Initializes a new instance of the GuidPartitionTable class.
+            </summary>
+            <param name="disk">The disk containing the partition table.</param>
+        </member>
+        <member name="M:DiscUtils.Partitions.GuidPartitionTable.#ctor(System.IO.Stream,DiscUtils.Geometry)">
+            <summary>
+            Initializes a new instance of the GuidPartitionTable class.
+            </summary>
+            <param name="disk">The stream containing the disk data.</param>
+            <param name="diskGeometry">The geometry of the disk.</param>
+        </member>
+        <member name="P:DiscUtils.Partitions.GuidPartitionTable.FirstUsableSector">
+            <summary>
+            Gets the first sector of the disk available to hold partitions.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.GuidPartitionTable.LastUsableSector">
+            <summary>
+            Gets the last sector of the disk available to hold partitions.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.GuidPartitionTable.DiskGuid">
+            <summary>
+            Gets the unique GPT identifier for this disk.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.GuidPartitionTable.Partitions">
+            <summary>
+            Gets a collection of the partitions for storing Operating System file-systems.
+            </summary>
+        </member>
+        <member name="M:DiscUtils.Partitions.GuidPartitionTable.Initialize(DiscUtils.VirtualDisk)">
+            <summary>
+            Creates a new partition table on a disk.
+            </summary>
+            <param name="disk">The disk to initialize.</param>
+            <returns>An object to access the newly created partition table.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.GuidPartitionTable.Initialize(System.IO.Stream,DiscUtils.Geometry)">
+            <summary>
+            Creates a new partition table on a disk.
+            </summary>
+            <param name="disk">The stream containing the disk data.</param>
+            <param name="diskGeometry">The geometry of the disk.</param>
+            <returns>An object to access the newly created partition table.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.GuidPartitionTable.Initialize(DiscUtils.VirtualDisk,DiscUtils.Partitions.WellKnownPartitionType)">
+            <summary>
+            Creates a new partition table on a disk containing a single partition.
+            </summary>
+            <param name="disk">The disk to initialize.</param>
+            <param name="type">The partition type for the single partition.</param>
+            <returns>An object to access the newly created partition table.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.GuidPartitionTable.Create(DiscUtils.Partitions.WellKnownPartitionType,System.Boolean)">
+            <summary>
+            Creates a new partition that encompasses the entire disk.
+            </summary>
+            <param name="type">The partition type.</param>
+            <param name="active">Whether the partition is active (bootable).</param>
+            <returns>The index of the partition.</returns>
+            <remarks>The partition table must be empty before this method is called,
+            otherwise IOException is thrown.</remarks>
+        </member>
+        <member name="M:DiscUtils.Partitions.GuidPartitionTable.Create(System.Int64,DiscUtils.Partitions.WellKnownPartitionType,System.Boolean)">
+            <summary>
+            Creates a new primary partition with a target size.
+            </summary>
+            <param name="size">The target size (in bytes).</param>
+            <param name="type">The partition type.</param>
+            <param name="active">Whether the partition is active (bootable).</param>
+            <returns>The index of the new partition.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.GuidPartitionTable.CreateAligned(DiscUtils.Partitions.WellKnownPartitionType,System.Boolean,System.Int32)">
+            <summary>
+            Creates a new aligned partition that encompasses the entire disk.
+            </summary>
+            <param name="type">The partition type.</param>
+            <param name="active">Whether the partition is active (bootable).</param>
+            <param name="alignment">The alignment (in bytes).</param>
+            <returns>The index of the partition.</returns>
+            <remarks>The partition table must be empty before this method is called,
+            otherwise IOException is thrown.</remarks>
+            <remarks>
+            Traditionally partitions were aligned to the physical structure of the underlying disk,
+            however with modern storage greater efficiency is acheived by aligning partitions on
+            large values that are a power of two.
+            </remarks>
+        </member>
+        <member name="M:DiscUtils.Partitions.GuidPartitionTable.CreateAligned(System.Int64,DiscUtils.Partitions.WellKnownPartitionType,System.Boolean,System.Int32)">
+            <summary>
+            Creates a new aligned partition with a target size.
+            </summary>
+            <param name="size">The target size (in bytes).</param>
+            <param name="type">The partition type.</param>
+            <param name="active">Whether the partition is active (bootable).</param>
+            <param name="alignment">The alignment (in bytes).</param>
+            <returns>The index of the new partition.</returns>
+            <remarks>
+            Traditionally partitions were aligned to the physical structure of the underlying disk,
+            however with modern storage greater efficiency is achieved by aligning partitions on
+            large values that are a power of two.
+            </remarks>
+        </member>
+        <member name="M:DiscUtils.Partitions.GuidPartitionTable.Create(System.Int64,System.Int64,System.Guid,System.Int64,System.String)">
+            <summary>
+            Creates a new GUID partition on the disk.
+            </summary>
+            <param name="startSector">The first sector of the partition.</param>
+            <param name="endSector">The last sector of the partition.</param>
+            <param name="type">The partition type.</param>
+            <param name="attributes">The partition attributes.</param>
+            <param name="name">The name of the partition.</param>
+            <returns>The index of the new partition.</returns>
+            <remarks>No checking is performed on the parameters, the caller is
+            responsible for ensuring that the partition does not overlap other partitions.</remarks>
+        </member>
+        <member name="M:DiscUtils.Partitions.GuidPartitionTable.Delete(System.Int32)">
+            <summary>
+            Deletes a partition at a given index.
+            </summary>
+            <param name="index">The index of the partition.</param>
+        </member>
+        <member name="T:DiscUtils.Partitions.GuidPartitionTypes">
+            <summary>
+            Convenient access to well known GPT partition types.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.GuidPartitionTypes.EfiSystem">
+            <summary>
+            EFI system partition.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.GuidPartitionTypes.BiosBoot">
+            <summary>
+            BIOS boot partition.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.GuidPartitionTypes.MicrosoftReserved">
+            <summary>
+            Microsoft reserved partition.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.GuidPartitionTypes.WindowsBasicData">
+            <summary>
+            Windows basic data partition.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.GuidPartitionTypes.LinuxLvm">
+            <summary>
+            Linux LVM partition.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.GuidPartitionTypes.LinuxSwap">
+            <summary>
+            Linux swap partition.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.GuidPartitionTypes.WindowsLdmMetadata">
+            <summary>
+            Windows Logical Disk Manager metadata.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.GuidPartitionTypes.WindowsLdmData">
+            <summary>
+            Windows Logical Disk Manager data.
+            </summary>
+        </member>
+        <member name="M:DiscUtils.Partitions.GuidPartitionTypes.Convert(DiscUtils.Partitions.WellKnownPartitionType)">
+            <summary>
+            Converts a well known partition type to a Guid.
+            </summary>
+            <param name="wellKnown">The value to convert.</param>
+            <returns>The GUID value.</returns>
+        </member>
+        <member name="T:DiscUtils.Partitions.PartitionInfo">
+            <summary>
+            Base class representing a disk partition.
+            </summary>
+            <remarks>The purpose of this class is to provide a minimal view of a partition,
+            such that callers can access existing partitions without specific knowledge of
+            the partitioning system.</remarks>
+        </member>
+        <member name="P:DiscUtils.Partitions.PartitionInfo.FirstSector">
+            <summary>
+            Gets the first sector of the partion (relative to start of disk) as a Logical Block Address.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.PartitionInfo.LastSector">
+            <summary>
+            Gets the last sector of the partion (relative to start of disk) as a Logical Block Address (inclusive).
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.PartitionInfo.SectorCount">
+            <summary>
+            Gets the length of the partition in sectors.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.PartitionInfo.GuidType">
+            <summary>
+            Gets the type of the partition, as a GUID, when available.
+            </summary>
+            <remarks><see cref="T:System.Guid"/>.Empty for MBR-style partitions.</remarks>
+        </member>
+        <member name="P:DiscUtils.Partitions.PartitionInfo.BiosType">
+            <summary>
+            Gets the type of the partition, in legacy BIOS form, when available.
+            </summary>
+            <remarks>Zero for GUID-style partitions.</remarks>
+        </member>
+        <member name="P:DiscUtils.Partitions.PartitionInfo.TypeAsString">
+            <summary>
+            Gets the partition type as a 'friendly' string.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.PartitionInfo.VolumeType">
+            <summary>
+            Gets the physical volume type for this type of partition.
+            </summary>
+        </member>
+        <member name="M:DiscUtils.Partitions.PartitionInfo.Open">
+            <summary>
+            Opens a stream that accesses the partition's contents.
+            </summary>
+            <returns>The new stream.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.PartitionInfo.ToString">
+            <summary>
+            Gets a summary of the partition information as 'first - last (type)'.
+            </summary>
+            <returns>A string representation of the partition information.</returns>
+        </member>
+        <member name="T:DiscUtils.Partitions.PartitionTable">
+            <summary>
+            Base class for classes which represent a disk partitioning scheme.
+            </summary>
+            <remarks>After modifying the table, by creating or deleting a partition assume that any
+            previously stored partition indexes of higher value are no longer valid.  Re-enumerate
+            the partitions to discover the next index-to-partition mapping.</remarks>
+        </member>
+        <member name="P:DiscUtils.Partitions.PartitionTable.DiskGuid">
+            <summary>
+            Gets the GUID that uniquely identifies this disk, if supported (else returns <c>null</c>).
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.PartitionTable.Partitions">
+            <summary>
+            Gets the list of partitions that contain user data (i.e. non-system / empty).
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.PartitionTable.Count">
+            <summary>
+            Gets the number of User partitions on the disk.
+            </summary>
+        </member>
+        <member name="P:DiscUtils.Partitions.PartitionTable.Item(System.Int32)">
+            <summary>
+            Gets information about a particular User partition.
+            </summary>
+            <param name="index">The index of the partition.</param>
+            <returns>Information about the partition.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.PartitionTable.IsPartitioned(System.IO.Stream)">
+            <summary>
+            Determines if a disk is partitioned with a known partitioning scheme.
+            </summary>
+            <param name="content">The content of the disk to check.</param>
+            <returns><c>true</c> if the disk is partitioned, else <c>false</c>.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.PartitionTable.IsPartitioned(DiscUtils.VirtualDisk)">
+            <summary>
+            Determines if a disk is partitioned with a known partitioning scheme.
+            </summary>
+            <param name="disk">The disk to check.</param>
+            <returns><c>true</c> if the disk is partitioned, else <c>false</c>.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.PartitionTable.GetPartitionTables(DiscUtils.VirtualDisk)">
+            <summary>
+            Gets all of the partition tables found on a disk.
+            </summary>
+            <param name="disk">The disk to inspect.</param>
+            <returns>It is rare for a disk to have multiple partition tables, but theoretically
+            possible.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.PartitionTable.GetPartitionTables(System.IO.Stream)">
+            <summary>
+            Gets all of the partition tables found on a disk.
+            </summary>
+            <param name="contentStream">The content of the disk to inspect.</param>
+            <returns>It is rare for a disk to have multiple partition tables, but theoretically
+            possible.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.PartitionTable.Create(DiscUtils.Partitions.WellKnownPartitionType,System.Boolean)">
+            <summary>
+            Creates a new partition that encompasses the entire disk.
+            </summary>
+            <param name="type">The partition type.</param>
+            <param name="active">Whether the partition is active (bootable).</param>
+            <returns>The index of the partition.</returns>
+            <remarks>The partition table must be empty before this method is called,
+            otherwise IOException is thrown.</remarks>
+        </member>
+        <member name="M:DiscUtils.Partitions.PartitionTable.Create(System.Int64,DiscUtils.Partitions.WellKnownPartitionType,System.Boolean)">
+            <summary>
+            Creates a new partition with a target size.
+            </summary>
+            <param name="size">The target size (in bytes).</param>
+            <param name="type">The partition type.</param>
+            <param name="active">Whether the partition is active (bootable).</param>
+            <returns>The index of the new partition.</returns>
+        </member>
+        <member name="M:DiscUtils.Partitions.PartitionTable.CreateAligned(DiscUtils.Partitions.WellKnownPartitionType,System.Boolean,System.Int32)">
+            <summary>
+            Creates a new aligned partition that encompasses the entire disk.
+            </summary>
+            <param name="type">The partition type.</param>
+            <param name="active">Whether the partition is active (bootable).</param>
+            <param name="alignment">The alignment (in byte).</param>
+            <returns>The index of the partition.</returns>
+            <remarks>The partition table must be empty before this method is called,
+            otherwise IOException is thrown.</remarks>
+            <remarks>
+            Traditionally partitions were aligned to the physical structure of the underlying disk,
+            however with modern storage greater efficiency is acheived by aligning partitions on
+            large values that are a power of two.
+            </remarks>
+        </member>
+        <member name="M:DiscUtils.Partitions.PartitionTable.CreateAligned(System.Int64,DiscUtils.Partitions.WellKnownPartitionType,System.Boolean,System.Int32)">
+            <summary>
+            Creates a new aligned partition with a target size.
+            </summary>
+            <param name="size">The target size (in bytes).</param>
+            <param name="type">The partition type.</param>
+            <param name="active">Whether the partition is active (bootable).</param>
+            <param name="alignment">The alignment (in byte).</param>
+            <returns>The index of the new partition.</returns>
+            <remarks>
+            Traditionally partitions were aligned to the physical structure of the underlying disk,
+            however with modern storage greater efficiency is achieved by aligning partitions on
+            large values that are a power of two.
+            </remarks>
+        </member>
+        <member name="M:DiscUtils.Partitions.PartitionTable.Delete(System.Int32)">
+            <summary>
+            Deletes a partition at a given index.
+            </summary>
+            <param name="index">The index of the partition.</param>
+        </member>
+        <member name="T:DiscUtils.Partitions.WellKnownPartitionType">
+            <summary>
+            Enumeration of partition-table technology neutral partition types.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.WellKnownPartitionType.WindowsFat">
+            <summary>
+            Windows FAT-based partition.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.WellKnownPartitionType.WindowsNtfs">
+            <summary>
+            Windows NTFS-based partition.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.WellKnownPartitionType.Linux">
+            <summary>
+            Linux native file system.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.WellKnownPartitionType.LinuxSwap">
+            <summary>
+            Linux swap.
+            </summary>
+        </member>
+        <member name="F:DiscUtils.Partitions.WellKnownPartitionType.LinuxLvm">
+            <summary>
+            Linux Logical Volume Manager (LVM).
+            </summary>
+        </member>
         <member name="T:DiscUtils.Iso9660.BootDeviceEmulation">
             <summary>
             Enumeration of boot device emulation modes.
@@ -9767,818 +10579,6 @@
         <member name="F:DiscUtils.Ownership.Dispose">
             <summary>
             Indicates ownership of the stream is transfered, the owner should dispose of the stream when appropriate.
-            </summary>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosExtendedPartitionTable.GetMetadataDiskExtents">
-            <summary>
-            Gets all of the disk ranges containing partition table data.
-            </summary>
-            <returns>Set of stream extents, indicated as byte offset from the start of the disk.</returns>
-        </member>
-        <member name="T:DiscUtils.Partitions.BiosPartitionedDiskBuilder">
-            <summary>
-            Builds a stream with the contents of a BIOS partitioned disk.
-            </summary>
-            <remarks>
-            This class assembles a disk image dynamically in memory.  The
-            constructed stream will read data from the partition content
-            streams only when a client of this class tries to read from
-            that partition.
-            </remarks>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionedDiskBuilder.#ctor(System.Int64,DiscUtils.Geometry)">
-            <summary>
-            Initializes a new instance of the BiosPartitionedDiskBuilder class.
-            </summary>
-            <param name="capacity">The capacity of the disk (in bytes).</param>
-            <param name="biosGeometry">The BIOS geometry of the disk.</param>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionedDiskBuilder.#ctor(System.Int64,System.Byte[],DiscUtils.Geometry)">
-            <summary>
-            Initializes a new instance of the BiosPartitionedDiskBuilder class.
-            </summary>
-            <param name="capacity">The capacity of the disk (in bytes).</param>
-            <param name="bootSectors">The boot sector(s) of the disk.</param>
-            <param name="biosGeometry">The BIOS geometry of the disk.</param>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionedDiskBuilder.#ctor(DiscUtils.VirtualDisk)">
-            <summary>
-            Initializes a new instance of the BiosPartitionedDiskBuilder class by
-            cloning the partition structure of a source disk.
-            </summary>
-            <param name="sourceDisk">The disk to clone.</param>
-        </member>
-        <member name="P:DiscUtils.Partitions.BiosPartitionedDiskBuilder.PartitionTable">
-            <summary>
-            Gets the partition table in the disk.
-            </summary>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionedDiskBuilder.SetPartitionContent(System.Int32,DiscUtils.SparseStream)">
-            <summary>
-            Sets a stream representing the content of a partition in the partition table.
-            </summary>
-            <param name="index">The index of the partition.</param>
-            <param name="stream">The stream with the contents of the partition.</param>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionedDiskBuilder.UpdateBiosGeometry(DiscUtils.Geometry)">
-            <summary>
-            Updates the CHS fields in partition records to reflect a new BIOS geometry.
-            </summary>
-            <param name="geometry">The disk's new BIOS geometry.</param>
-            <remarks>The partitions are not relocated to a cylinder boundary, just the CHS fields are updated on the
-            assumption the LBA fields are definitive.</remarks>
-        </member>
-        <member name="T:DiscUtils.Partitions.BiosPartitionInfo">
-            <summary>
-            Provides access to partition records in a BIOS (MBR) partition table.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.FirstSector">
-            <summary>
-            Gets the first sector of the partion (relative to start of disk) as a Logical Block Address.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.LastSector">
-            <summary>
-            Gets the last sector of the partion (relative to start of disk) as a Logical Block Address (inclusive).
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.GuidType">
-            <summary>
-            Always returns <see cref="T:System.Guid"/>.Empty.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.BiosType">
-            <summary>
-            Gets the type of the partition.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.TypeAsString">
-            <summary>
-            Gets the type of the partition as a string.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.IsActive">
-            <summary>
-            Gets a value indicating whether this partition is active (bootable).
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.Start">
-            <summary>
-            Gets the start of the partition as a CHS address.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.End">
-            <summary>
-            Gets the end (inclusive) of the partition as a CHS address.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.PrimaryIndex">
-            <summary>
-            Gets the index of the partition in the primary partition table, or <c>-1</c> if not a primary partition.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.BiosPartitionInfo.IsPrimary">
-            <summary>
-            Gets a value indicating whether the partition is a primary (rather than extended) partition.
-            </summary>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionInfo.Open">
-            <summary>
-            Opens a stream to access the content of the partition.
-            </summary>
-            <returns>The new stream.</returns>
-        </member>
-        <member name="T:DiscUtils.Partitions.BiosPartitionTable">
-            <summary>
-            Represents a BIOS (MBR) Partition Table.
-            </summary>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.#ctor(DiscUtils.VirtualDisk)">
-            <summary>
-            Initializes a new instance of the BiosPartitionTable class.
-            </summary>
-            <param name="disk">The disk containing the partition table.</param>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.#ctor(System.IO.Stream,DiscUtils.Geometry)">
-            <summary>
-            Initializes a new instance of the BiosPartitionTable class.
-            </summary>
-            <param name="disk">The stream containing the disk data.</param>
-            <param name="diskGeometry">The geometry of the disk.</param>
-        </member>
-        <member name="P:DiscUtils.Partitions.BiosPartitionTable.DiskGuid">
-            <summary>
-            Gets the GUID that uniquely identifies this disk, if supported (else returns <c>null</c>).
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.BiosPartitionTable.BiosUserPartitions">
-            <summary>
-            Gets a collection of the partitions for storing Operating System file-systems.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.BiosPartitionTable.Partitions">
-            <summary>
-            Gets a collection of the partitions for storing Operating System file-systems.
-            </summary>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.DetectGeometry(System.IO.Stream)">
-            <summary>
-            Makes a best guess at the geometry of a disk.
-            </summary>
-            <param name="disk">String containing the disk image to detect the geometry from.</param>
-            <returns>The detected geometry.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.IsValid(System.IO.Stream)">
-            <summary>
-            Indicates if a stream contains a valid partition table.
-            </summary>
-            <param name="disk">The stream to inspect.</param>
-            <returns><c>true</c> if the partition table is valid, else <c>false</c>.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.Initialize(DiscUtils.VirtualDisk)">
-            <summary>
-            Creates a new partition table on a disk.
-            </summary>
-            <param name="disk">The disk to initialize.</param>
-            <returns>An object to access the newly created partition table.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.Initialize(DiscUtils.VirtualDisk,DiscUtils.Partitions.WellKnownPartitionType)">
-            <summary>
-            Creates a new partition table on a disk containing a single partition.
-            </summary>
-            <param name="disk">The disk to initialize.</param>
-            <param name="type">The partition type for the single partition.</param>
-            <returns>An object to access the newly created partition table.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.Initialize(System.IO.Stream,DiscUtils.Geometry)">
-            <summary>
-            Creates a new partition table on a disk.
-            </summary>
-            <param name="disk">The stream containing the disk data.</param>
-            <param name="diskGeometry">The geometry of the disk.</param>
-            <returns>An object to access the newly created partition table.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.Create(DiscUtils.Partitions.WellKnownPartitionType,System.Boolean)">
-            <summary>
-            Creates a new partition that encompasses the entire disk.
-            </summary>
-            <param name="type">The partition type.</param>
-            <param name="active">Whether the partition is active (bootable).</param>
-            <returns>The index of the partition.</returns>
-            <remarks>The partition table must be empty before this method is called,
-            otherwise IOException is thrown.</remarks>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.Create(System.Int64,DiscUtils.Partitions.WellKnownPartitionType,System.Boolean)">
-            <summary>
-            Creates a new primary partition with a target size.
-            </summary>
-            <param name="size">The target size (in bytes).</param>
-            <param name="type">The partition type.</param>
-            <param name="active">Whether the partition is active (bootable).</param>
-            <returns>The index of the new partition.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.CreateAligned(DiscUtils.Partitions.WellKnownPartitionType,System.Boolean,System.Int32)">
-            <summary>
-            Creates a new aligned partition that encompasses the entire disk.
-            </summary>
-            <param name="type">The partition type.</param>
-            <param name="active">Whether the partition is active (bootable).</param>
-            <param name="alignment">The alignment (in bytes).</param>
-            <returns>The index of the partition.</returns>
-            <remarks>The partition table must be empty before this method is called,
-            otherwise IOException is thrown.</remarks>
-            <remarks>
-            Traditionally partitions were aligned to the physical structure of the underlying disk,
-            however with modern storage greater efficiency is acheived by aligning partitions on
-            large values that are a power of two.
-            </remarks>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.CreateAligned(System.Int64,DiscUtils.Partitions.WellKnownPartitionType,System.Boolean,System.Int32)">
-            <summary>
-            Creates a new aligned partition with a target size.
-            </summary>
-            <param name="size">The target size (in bytes).</param>
-            <param name="type">The partition type.</param>
-            <param name="active">Whether the partition is active (bootable).</param>
-            <param name="alignment">The alignment (in bytes).</param>
-            <returns>The index of the new partition.</returns>
-            <remarks>
-            Traditionally partitions were aligned to the physical structure of the underlying disk,
-            however with modern storage greater efficiency is achieved by aligning partitions on
-            large values that are a power of two.
-            </remarks>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.Delete(System.Int32)">
-            <summary>
-            Deletes a partition at a given index.
-            </summary>
-            <param name="index">The index of the partition.</param>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.CreatePrimaryByCylinder(System.Int32,System.Int32,System.Byte,System.Boolean)">
-            <summary>
-            Creates a new Primary Partition that occupies whole cylinders, for best compatibility.
-            </summary>
-            <param name="first">The first cylinder to include in the partition (inclusive).</param>
-            <param name="last">The last cylinder to include in the partition (inclusive).</param>
-            <param name="type">The BIOS (MBR) type of the new partition.</param>
-            <param name="markActive">Whether to mark the partition active (bootable).</param>
-            <returns>The index of the new partition.</returns>
-            <remarks>If the cylinder 0 is given, the first track will not be used, to reserve space
-            for the meta-data at the start of the disk.</remarks>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.CreatePrimaryBySector(System.Int64,System.Int64,System.Byte,System.Boolean)">
-            <summary>
-            Creates a new Primary Partition, specified by Logical Block Addresses.
-            </summary>
-            <param name="first">The LBA address of the first sector (inclusive).</param>
-            <param name="last">The LBA address of the last sector (inclusive).</param>
-            <param name="type">The BIOS (MBR) type of the new partition.</param>
-            <param name="markActive">Whether to mark the partition active (bootable).</param>
-            <returns>The index of the new partition.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.SetActivePartition(System.Int32)">
-            <summary>
-            Sets the active partition.
-            </summary>
-            <param name="index">The index of the primary partition to mark bootable, or <c>-1</c> for none.</param>
-            <remarks>The supplied index is the index within the primary partition, see <c>PrimaryIndex</c> on <c>BiosPartitionInfo</c>.</remarks>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.GetMetadataDiskExtents">
-            <summary>
-            Gets all of the disk ranges containing partition table metadata.
-            </summary>
-            <returns>Set of stream extents, indicated as byte offset from the start of the disk.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTable.UpdateBiosGeometry(DiscUtils.Geometry)">
-            <summary>
-            Updates the CHS fields in partition records to reflect a new BIOS geometry.
-            </summary>
-            <param name="geometry">The disk's new BIOS geometry.</param>
-            <remarks>The partitions are not relocated to a cylinder boundary, just the CHS fields are updated on the
-            assumption the LBA fields are definitive.</remarks>
-        </member>
-        <member name="T:DiscUtils.Partitions.BiosPartitionTypes">
-            <summary>
-            Convenient access to well-known BIOS (MBR) Partition Types.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.Fat12">
-            <summary>
-            Microsoft FAT12 (fewer than 32,680 sectors in the volume).
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.Fat16Small">
-            <summary>
-            Microsoft FAT16 (32,680–65,535 sectors or 16 MB–33 MB).
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.Extended">
-            <summary>
-            Extended Partition (contains other partitions).
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.Fat16">
-            <summary>
-            Microsoft BIGDOS FAT16 (33 MB–4 GB).
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.Ntfs">
-            <summary>
-            Installable File System (NTFS).
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.Fat32">
-            <summary>
-            Microsoft FAT32.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.Fat32Lba">
-            <summary>
-            Microsoft FAT32, accessed using Int13h BIOS LBA extensions.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.Fat16Lba">
-            <summary>
-            Microsoft BIGDOS FAT16, accessed using Int13h BIOS LBA extensions.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.ExtendedLba">
-            <summary>
-            Extended Partition (contains other partitions), accessed using Int13h BIOS LBA extensions.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.WindowsDynamicVolume">
-            <summary>
-            Windows Logical Disk Manager dynamic volume.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.LinuxSwap">
-            <summary>
-            Linux Swap.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.LinuxNative">
-            <summary>
-            Linux Native (ext2 and friends).
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.LinuxLvm">
-            <summary>
-            Linux Logical Volume Manager (LVM).
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.GptProtective">
-            <summary>
-            GUID Partition Table (GPT) protective partition, fills entire disk.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.BiosPartitionTypes.EfiSystem">
-            <summary>
-            EFI System partition on an MBR disk.
-            </summary>
-        </member>
-        <member name="M:DiscUtils.Partitions.BiosPartitionTypes.ToString(System.Byte)">
-            <summary>
-            Provides a string representation of some known BIOS partition types.
-            </summary>
-            <param name="type">The partition type to represent as a string.</param>
-            <returns>The string representation.</returns>
-        </member>
-        <member name="T:DiscUtils.Partitions.GuidPartitionInfo">
-            <summary>
-            Provides access to partition records in a GUID partition table.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.GuidPartitionInfo.FirstSector">
-            <summary>
-            Gets the first sector of the partion (relative to start of disk) as a Logical Block Address.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.GuidPartitionInfo.LastSector">
-            <summary>
-            Gets the last sector of the partion (relative to start of disk) as a Logical Block Address (inclusive).
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.GuidPartitionInfo.GuidType">
-            <summary>
-            Gets the type of the partition, as a GUID.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.GuidPartitionInfo.BiosType">
-            <summary>
-            Always returns Zero.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.GuidPartitionInfo.TypeAsString">
-            <summary>
-            Gets the type of the partition as a string.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.GuidPartitionInfo.Name">
-            <summary>
-            Gets the name of the partition.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.GuidPartitionInfo.Attributes">
-            <summary>
-            Gets the attributes of the partition.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.GuidPartitionInfo.Identity">
-            <summary>
-            Gets the unique identity of this specific partition.
-            </summary>
-        </member>
-        <member name="M:DiscUtils.Partitions.GuidPartitionInfo.Open">
-            <summary>
-            Opens a stream to access the content of the partition.
-            </summary>
-            <returns>The new stream.</returns>
-        </member>
-        <member name="T:DiscUtils.Partitions.GuidPartitionTable">
-            <summary>
-            Represents a GUID Partition Table.
-            </summary>
-        </member>
-        <member name="M:DiscUtils.Partitions.GuidPartitionTable.#ctor(DiscUtils.VirtualDisk)">
-            <summary>
-            Initializes a new instance of the GuidPartitionTable class.
-            </summary>
-            <param name="disk">The disk containing the partition table.</param>
-        </member>
-        <member name="M:DiscUtils.Partitions.GuidPartitionTable.#ctor(System.IO.Stream,DiscUtils.Geometry)">
-            <summary>
-            Initializes a new instance of the GuidPartitionTable class.
-            </summary>
-            <param name="disk">The stream containing the disk data.</param>
-            <param name="diskGeometry">The geometry of the disk.</param>
-        </member>
-        <member name="P:DiscUtils.Partitions.GuidPartitionTable.FirstUsableSector">
-            <summary>
-            Gets the first sector of the disk available to hold partitions.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.GuidPartitionTable.LastUsableSector">
-            <summary>
-            Gets the last sector of the disk available to hold partitions.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.GuidPartitionTable.DiskGuid">
-            <summary>
-            Gets the unique GPT identifier for this disk.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.GuidPartitionTable.Partitions">
-            <summary>
-            Gets a collection of the partitions for storing Operating System file-systems.
-            </summary>
-        </member>
-        <member name="M:DiscUtils.Partitions.GuidPartitionTable.Initialize(DiscUtils.VirtualDisk)">
-            <summary>
-            Creates a new partition table on a disk.
-            </summary>
-            <param name="disk">The disk to initialize.</param>
-            <returns>An object to access the newly created partition table.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.GuidPartitionTable.Initialize(System.IO.Stream,DiscUtils.Geometry)">
-            <summary>
-            Creates a new partition table on a disk.
-            </summary>
-            <param name="disk">The stream containing the disk data.</param>
-            <param name="diskGeometry">The geometry of the disk.</param>
-            <returns>An object to access the newly created partition table.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.GuidPartitionTable.Initialize(DiscUtils.VirtualDisk,DiscUtils.Partitions.WellKnownPartitionType)">
-            <summary>
-            Creates a new partition table on a disk containing a single partition.
-            </summary>
-            <param name="disk">The disk to initialize.</param>
-            <param name="type">The partition type for the single partition.</param>
-            <returns>An object to access the newly created partition table.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.GuidPartitionTable.Create(DiscUtils.Partitions.WellKnownPartitionType,System.Boolean)">
-            <summary>
-            Creates a new partition that encompasses the entire disk.
-            </summary>
-            <param name="type">The partition type.</param>
-            <param name="active">Whether the partition is active (bootable).</param>
-            <returns>The index of the partition.</returns>
-            <remarks>The partition table must be empty before this method is called,
-            otherwise IOException is thrown.</remarks>
-        </member>
-        <member name="M:DiscUtils.Partitions.GuidPartitionTable.Create(System.Int64,DiscUtils.Partitions.WellKnownPartitionType,System.Boolean)">
-            <summary>
-            Creates a new primary partition with a target size.
-            </summary>
-            <param name="size">The target size (in bytes).</param>
-            <param name="type">The partition type.</param>
-            <param name="active">Whether the partition is active (bootable).</param>
-            <returns>The index of the new partition.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.GuidPartitionTable.CreateAligned(DiscUtils.Partitions.WellKnownPartitionType,System.Boolean,System.Int32)">
-            <summary>
-            Creates a new aligned partition that encompasses the entire disk.
-            </summary>
-            <param name="type">The partition type.</param>
-            <param name="active">Whether the partition is active (bootable).</param>
-            <param name="alignment">The alignment (in bytes).</param>
-            <returns>The index of the partition.</returns>
-            <remarks>The partition table must be empty before this method is called,
-            otherwise IOException is thrown.</remarks>
-            <remarks>
-            Traditionally partitions were aligned to the physical structure of the underlying disk,
-            however with modern storage greater efficiency is acheived by aligning partitions on
-            large values that are a power of two.
-            </remarks>
-        </member>
-        <member name="M:DiscUtils.Partitions.GuidPartitionTable.CreateAligned(System.Int64,DiscUtils.Partitions.WellKnownPartitionType,System.Boolean,System.Int32)">
-            <summary>
-            Creates a new aligned partition with a target size.
-            </summary>
-            <param name="size">The target size (in bytes).</param>
-            <param name="type">The partition type.</param>
-            <param name="active">Whether the partition is active (bootable).</param>
-            <param name="alignment">The alignment (in bytes).</param>
-            <returns>The index of the new partition.</returns>
-            <remarks>
-            Traditionally partitions were aligned to the physical structure of the underlying disk,
-            however with modern storage greater efficiency is achieved by aligning partitions on
-            large values that are a power of two.
-            </remarks>
-        </member>
-        <member name="M:DiscUtils.Partitions.GuidPartitionTable.Create(System.Int64,System.Int64,System.Guid,System.Int64,System.String)">
-            <summary>
-            Creates a new GUID partition on the disk.
-            </summary>
-            <param name="startSector">The first sector of the partition.</param>
-            <param name="endSector">The last sector of the partition.</param>
-            <param name="type">The partition type.</param>
-            <param name="attributes">The partition attributes.</param>
-            <param name="name">The name of the partition.</param>
-            <returns>The index of the new partition.</returns>
-            <remarks>No checking is performed on the parameters, the caller is
-            responsible for ensuring that the partition does not overlap other partitions.</remarks>
-        </member>
-        <member name="M:DiscUtils.Partitions.GuidPartitionTable.Delete(System.Int32)">
-            <summary>
-            Deletes a partition at a given index.
-            </summary>
-            <param name="index">The index of the partition.</param>
-        </member>
-        <member name="T:DiscUtils.Partitions.GuidPartitionTypes">
-            <summary>
-            Convenient access to well known GPT partition types.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.GuidPartitionTypes.EfiSystem">
-            <summary>
-            EFI system partition.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.GuidPartitionTypes.BiosBoot">
-            <summary>
-            BIOS boot partition.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.GuidPartitionTypes.MicrosoftReserved">
-            <summary>
-            Microsoft reserved partition.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.GuidPartitionTypes.WindowsBasicData">
-            <summary>
-            Windows basic data partition.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.GuidPartitionTypes.LinuxLvm">
-            <summary>
-            Linux LVM partition.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.GuidPartitionTypes.LinuxSwap">
-            <summary>
-            Linux swap partition.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.GuidPartitionTypes.WindowsLdmMetadata">
-            <summary>
-            Windows Logical Disk Manager metadata.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.GuidPartitionTypes.WindowsLdmData">
-            <summary>
-            Windows Logical Disk Manager data.
-            </summary>
-        </member>
-        <member name="M:DiscUtils.Partitions.GuidPartitionTypes.Convert(DiscUtils.Partitions.WellKnownPartitionType)">
-            <summary>
-            Converts a well known partition type to a Guid.
-            </summary>
-            <param name="wellKnown">The value to convert.</param>
-            <returns>The GUID value.</returns>
-        </member>
-        <member name="T:DiscUtils.Partitions.PartitionInfo">
-            <summary>
-            Base class representing a disk partition.
-            </summary>
-            <remarks>The purpose of this class is to provide a minimal view of a partition,
-            such that callers can access existing partitions without specific knowledge of
-            the partitioning system.</remarks>
-        </member>
-        <member name="P:DiscUtils.Partitions.PartitionInfo.FirstSector">
-            <summary>
-            Gets the first sector of the partion (relative to start of disk) as a Logical Block Address.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.PartitionInfo.LastSector">
-            <summary>
-            Gets the last sector of the partion (relative to start of disk) as a Logical Block Address (inclusive).
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.PartitionInfo.SectorCount">
-            <summary>
-            Gets the length of the partition in sectors.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.PartitionInfo.GuidType">
-            <summary>
-            Gets the type of the partition, as a GUID, when available.
-            </summary>
-            <remarks><see cref="T:System.Guid"/>.Empty for MBR-style partitions.</remarks>
-        </member>
-        <member name="P:DiscUtils.Partitions.PartitionInfo.BiosType">
-            <summary>
-            Gets the type of the partition, in legacy BIOS form, when available.
-            </summary>
-            <remarks>Zero for GUID-style partitions.</remarks>
-        </member>
-        <member name="P:DiscUtils.Partitions.PartitionInfo.TypeAsString">
-            <summary>
-            Gets the partition type as a 'friendly' string.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.PartitionInfo.VolumeType">
-            <summary>
-            Gets the physical volume type for this type of partition.
-            </summary>
-        </member>
-        <member name="M:DiscUtils.Partitions.PartitionInfo.Open">
-            <summary>
-            Opens a stream that accesses the partition's contents.
-            </summary>
-            <returns>The new stream.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.PartitionInfo.ToString">
-            <summary>
-            Gets a summary of the partition information as 'first - last (type)'.
-            </summary>
-            <returns>A string representation of the partition information.</returns>
-        </member>
-        <member name="T:DiscUtils.Partitions.PartitionTable">
-            <summary>
-            Base class for classes which represent a disk partitioning scheme.
-            </summary>
-            <remarks>After modifying the table, by creating or deleting a partition assume that any
-            previously stored partition indexes of higher value are no longer valid.  Re-enumerate
-            the partitions to discover the next index-to-partition mapping.</remarks>
-        </member>
-        <member name="P:DiscUtils.Partitions.PartitionTable.DiskGuid">
-            <summary>
-            Gets the GUID that uniquely identifies this disk, if supported (else returns <c>null</c>).
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.PartitionTable.Partitions">
-            <summary>
-            Gets the list of partitions that contain user data (i.e. non-system / empty).
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.PartitionTable.Count">
-            <summary>
-            Gets the number of User partitions on the disk.
-            </summary>
-        </member>
-        <member name="P:DiscUtils.Partitions.PartitionTable.Item(System.Int32)">
-            <summary>
-            Gets information about a particular User partition.
-            </summary>
-            <param name="index">The index of the partition.</param>
-            <returns>Information about the partition.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.PartitionTable.IsPartitioned(System.IO.Stream)">
-            <summary>
-            Determines if a disk is partitioned with a known partitioning scheme.
-            </summary>
-            <param name="content">The content of the disk to check.</param>
-            <returns><c>true</c> if the disk is partitioned, else <c>false</c>.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.PartitionTable.IsPartitioned(DiscUtils.VirtualDisk)">
-            <summary>
-            Determines if a disk is partitioned with a known partitioning scheme.
-            </summary>
-            <param name="disk">The disk to check.</param>
-            <returns><c>true</c> if the disk is partitioned, else <c>false</c>.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.PartitionTable.GetPartitionTables(DiscUtils.VirtualDisk)">
-            <summary>
-            Gets all of the partition tables found on a disk.
-            </summary>
-            <param name="disk">The disk to inspect.</param>
-            <returns>It is rare for a disk to have multiple partition tables, but theoretically
-            possible.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.PartitionTable.GetPartitionTables(System.IO.Stream)">
-            <summary>
-            Gets all of the partition tables found on a disk.
-            </summary>
-            <param name="contentStream">The content of the disk to inspect.</param>
-            <returns>It is rare for a disk to have multiple partition tables, but theoretically
-            possible.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.PartitionTable.Create(DiscUtils.Partitions.WellKnownPartitionType,System.Boolean)">
-            <summary>
-            Creates a new partition that encompasses the entire disk.
-            </summary>
-            <param name="type">The partition type.</param>
-            <param name="active">Whether the partition is active (bootable).</param>
-            <returns>The index of the partition.</returns>
-            <remarks>The partition table must be empty before this method is called,
-            otherwise IOException is thrown.</remarks>
-        </member>
-        <member name="M:DiscUtils.Partitions.PartitionTable.Create(System.Int64,DiscUtils.Partitions.WellKnownPartitionType,System.Boolean)">
-            <summary>
-            Creates a new partition with a target size.
-            </summary>
-            <param name="size">The target size (in bytes).</param>
-            <param name="type">The partition type.</param>
-            <param name="active">Whether the partition is active (bootable).</param>
-            <returns>The index of the new partition.</returns>
-        </member>
-        <member name="M:DiscUtils.Partitions.PartitionTable.CreateAligned(DiscUtils.Partitions.WellKnownPartitionType,System.Boolean,System.Int32)">
-            <summary>
-            Creates a new aligned partition that encompasses the entire disk.
-            </summary>
-            <param name="type">The partition type.</param>
-            <param name="active">Whether the partition is active (bootable).</param>
-            <param name="alignment">The alignment (in byte).</param>
-            <returns>The index of the partition.</returns>
-            <remarks>The partition table must be empty before this method is called,
-            otherwise IOException is thrown.</remarks>
-            <remarks>
-            Traditionally partitions were aligned to the physical structure of the underlying disk,
-            however with modern storage greater efficiency is acheived by aligning partitions on
-            large values that are a power of two.
-            </remarks>
-        </member>
-        <member name="M:DiscUtils.Partitions.PartitionTable.CreateAligned(System.Int64,DiscUtils.Partitions.WellKnownPartitionType,System.Boolean,System.Int32)">
-            <summary>
-            Creates a new aligned partition with a target size.
-            </summary>
-            <param name="size">The target size (in bytes).</param>
-            <param name="type">The partition type.</param>
-            <param name="active">Whether the partition is active (bootable).</param>
-            <param name="alignment">The alignment (in byte).</param>
-            <returns>The index of the new partition.</returns>
-            <remarks>
-            Traditionally partitions were aligned to the physical structure of the underlying disk,
-            however with modern storage greater efficiency is achieved by aligning partitions on
-            large values that are a power of two.
-            </remarks>
-        </member>
-        <member name="M:DiscUtils.Partitions.PartitionTable.Delete(System.Int32)">
-            <summary>
-            Deletes a partition at a given index.
-            </summary>
-            <param name="index">The index of the partition.</param>
-        </member>
-        <member name="T:DiscUtils.Partitions.WellKnownPartitionType">
-            <summary>
-            Enumeration of partition-table technology neutral partition types.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.WellKnownPartitionType.WindowsFat">
-            <summary>
-            Windows FAT-based partition.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.WellKnownPartitionType.WindowsNtfs">
-            <summary>
-            Windows NTFS-based partition.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.WellKnownPartitionType.Linux">
-            <summary>
-            Linux native file system.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.WellKnownPartitionType.LinuxSwap">
-            <summary>
-            Linux swap.
-            </summary>
-        </member>
-        <member name="F:DiscUtils.Partitions.WellKnownPartitionType.LinuxLvm">
-            <summary>
-            Linux Logical Volume Manager (LVM).
             </summary>
         </member>
         <member name="T:DiscUtils.PhysicalVolumeType">

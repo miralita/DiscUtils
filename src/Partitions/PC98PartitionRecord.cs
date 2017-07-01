@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiscUtils.Hdi
+namespace DiscUtils.Partitions
 {
     public enum PartType : uint{
         N88_PCUX = 0,
@@ -33,10 +33,12 @@ namespace DiscUtils.Hdi
         EXT2 = 0x62,
     }
 
-    public class PC98Partition {
+    public class PC98PartitionRecord : IComparable<PC98PartitionRecord>
+    {
         private byte mid;
         private bool bootable;
         private PartType partType;
+        private Stream _stream;
 
         private byte sid;
         private bool active;
@@ -55,9 +57,14 @@ namespace DiscUtils.Hdi
         private ushort end_cyl;
         private string name;
 
-        public PC98Partition(Stream s) {
+        public PC98PartitionRecord(Stream s) {
+            _stream = s;
+            Init();
+        }
+
+        private void Init() {
             var buf = new byte[32];
-            s.Read(buf, 0, buf.Length);
+            _stream.Read(buf, 0, buf.Length);
             var i = 0;
             mid = buf[i++];
             bootable = (mid & 0x80) > 0;
@@ -65,7 +72,7 @@ namespace DiscUtils.Hdi
             if (m >= 0x21 && m <= 0x2f) {
                 partType = PartType.DOS;
             } else {
-                partType = (PartType)m;
+                partType = (PartType) m;
             }
 
             sid = buf[i++];
@@ -77,7 +84,7 @@ namespace DiscUtils.Hdi
             i += 2;
             ipl_sect = buf[i++];
             ipl_head = buf[i++];
-            ipl_cyl = (ushort)(buf[i] | (buf[i + 1] << 8));
+            ipl_cyl = (ushort) (buf[i] | (buf[i + 1] << 8));
             i += 2;
             sector = buf[i++];
             head = buf[i++];
@@ -88,6 +95,12 @@ namespace DiscUtils.Hdi
             end_cyl = (ushort) (buf[i] | (buf[i + 1] << 8));
             i += 2;
             name = Encoding.ASCII.GetString(buf, i, 16);
+        }
+
+        public PC98PartitionRecord(Stream s, int position) {
+            s.Position = position;
+            _stream = s;
+            Init();
         }
 
         public bool Bootable {
@@ -144,6 +157,10 @@ namespace DiscUtils.Hdi
 
         public string Name {
             get { return name; }
+        }
+
+        public int CompareTo(PC98PartitionRecord other) {
+            throw new NotImplementedException();
         }
     }
 }
