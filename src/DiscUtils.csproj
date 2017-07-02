@@ -138,6 +138,11 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Ext\ExtFileSystemOptions.cs" />
+    <Compile Include="Fat\PC98FatFileSystem.cs" />
+    <Compile Include="Fdi\Disk.cs" />
+    <Compile Include="Fdi\DiskFacotry.cs" />
+    <Compile Include="Fdi\DiskHeader.cs" />
+    <Compile Include="Fdi\DiskLayer.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Hdi\Disk.cs" />
     <Compile Include="Hdi\DiskFactory.cs" />

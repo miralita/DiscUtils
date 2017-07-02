@@ -32,7 +32,7 @@ namespace DiscUtils.Fat
     /// <summary>
     /// Class for accessing FAT file systems.
     /// </summary>
-    public sealed class FatFileSystem : DiscFileSystem
+    public class FatFileSystem : DiscFileSystem
     {
         /// <summary>
         /// The Epoch for FAT file systems (1st Jan, 1980).
@@ -1814,10 +1814,16 @@ namespace DiscUtils.Fat
             return toUtc ? time.ToUniversalTime() : time.ToLocalTime();
         }
 
-        private void Initialize(Stream data) {
+        protected virtual void DetectEncoding(Stream data) {
             var encoding = (data as SparseStream)?.FileNameEncoding;
             if (encoding == null) {
                 encoding = (data as SubStream)?.FileNameEncoding;
+            }
+            if (encoding == null) {
+                var oename = Encoding.ASCII.GetString(_bootSector, 3, 8).TrimEnd('\0');
+                if (CheckPC98Manufacturers(oename)) {
+                    encoding = Encoding.GetEncoding("shift-jis");
+                }
             }
             if (encoding != null) {
                 var opts = this.Options as FatFileSystemOptions;
@@ -1825,9 +1831,23 @@ namespace DiscUtils.Fat
                     opts.FileNameEncoding = encoding;
                 }
             }
+        }
+
+        private bool CheckPC98Manufacturers(string oename) {
+            var names = new string[] {"F.bug", "IHC", "ALICE000", "BPS 1.00", "CANOPUS2", "EPSON5.0", "FUJIFILM", "NEC  5.0", "MAXELL", "NEC 2.00", "NEC PNCI", "SONY1.0", "UST  1.0"};
+            foreach (var name in names) {
+                if (oename.Contains(name)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void Initialize(Stream data) {
             _data = data;
             _data.Position = 0;
             _bootSector = Utilities.ReadSector(_data);
+            DetectEncoding(data);
 
             _type = DetectFATType(_bootSector);
             _sectorSize = DetectSectorSize(_bootSector);

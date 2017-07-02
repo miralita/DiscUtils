@@ -43,4 +43,20 @@ namespace DiscUtils.Fat
             return new FatFileSystem(stream, Ownership.None, parameters);
         }
     }
+
+    [VfsFileSystemFactory]
+    internal class PC98FileSystemFactory : VfsFileSystemFactory
+    {
+        public override DiscUtils.FileSystemInfo[] Detect(Stream stream, VolumeInfo volume) {
+            if (PC98FatFileSystem.Detect(stream)) {
+                return new DiscUtils.FileSystemInfo[] { new VfsFileSystemInfo("PC98FAT", "PC98 FAT", Open) };
+            }
+
+            return new DiscUtils.FileSystemInfo[0];
+        }
+
+        private DiscFileSystem Open(Stream stream, VolumeInfo volumeInfo, FileSystemParameters parameters) {
+            return new PC98FatFileSystem(stream, Ownership.None, parameters);
+        }
+    }
 }

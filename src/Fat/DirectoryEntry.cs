@@ -42,6 +42,14 @@ namespace DiscUtils.Fat
         private ushort _firstClusterLo;
         private uint _fileSize;
 
+        public override string ToString() {
+            if (_name != null) {
+                return _name.ToString();
+            } else {
+                return "{EMPTY}";
+            }
+        }
+
         internal DirectoryEntry(FatFileSystemOptions options, Stream stream, FatType fatVariant)
         {
             _options = options;
@@ -163,7 +171,7 @@ namespace DiscUtils.Fat
 
         private static DateTime FileTimeToDateTime(ushort date, ushort time, byte tenths)
         {
-            if (date == 0 || date == 0xFFFF)
+            if (date == 0 || date == 0xFFFF || date == 0xe5e5)
             {
                 // Return Epoch - this is an invalid date
                 return FatFileSystem.Epoch;

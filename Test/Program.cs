@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,42 @@ using DiscUtils.Hdi;
 
 namespace Test {
     internal class Program {
+        private static string[] fileList1 = new string[] {
+            @"D:\Translations\FDI\5x5go\lip_stick2_a.fdi",
+            @"D:\Translations\FDI\5x5go\lip_stick2_b.fdi",
+            @"D:\Translations\FDI\5x5go\madpa_5.fdi"
+        };
+        private static string[] fileList2 = new string[] {
+            @"D:\Translations\FDI\5x5go\ccbsprta.fdi",
+            @"D:\Translations\FDI\5x5go\circle_m_01.fdi",
+            @"D:\Translations\FDI\5x5go\cpsycho_a.fdi",
+            @"D:\Translations\FDI\5x5go\executioners_system.fdi",
+            @"D:\Translations\FDI\5x5go\ftailk_1.fdi",
+            @"D:\Translations\FDI\5x5go\kimidaia.fdi",
+            @"D:\Translations\FDI\5x5go\ko1_a.fdi",
+            @"D:\Translations\FDI\5x5go\kounai2_1.fdi",
+            @"D:\Translations\FDI\5x5go\kounai_shasei_sp.fdi",
+            @"D:\Translations\FDI\5x5go\madou monogatari - michikusa ibun (j).fdi",
+            @"D:\Translations\FDI\5x5go\mai_a.fdi",
+            @"D:\Translations\FDI\5x5go\mai_b.fdi",
+            @"D:\Translations\FDI\5x5go\mai_c.fdi",
+            @"D:\Translations\FDI\5x5go\marines - special disk (j).fdi",
+            @"D:\Translations\FDI\5x5go\nooch2_1.fdi",
+            @"D:\Translations\FDI\5x5go\salamander.fdi",
+            @"D:\Translations\FDI\5x5go\saori_a.fdi",
+            @"D:\Translations\FDI\5x5go\sekai_a.fdi",
+            @"D:\Translations\FDI\5x5go\sschld4c.fdi",
+            @"D:\Translations\FDI\5x5go\sshild3c.fdi",
+            @"D:\Translations\FDI\5x5go\straw_c.fdi",
+            @"D:\Translations\FDI\5x5go\themm_1.fdi",
+            @"D:\Translations\FDI\5x5go\ulamander - 2.fdi",
+            @"D:\Translations\FDI\5x5go\wiz98yutoufu4.fdi",
+            @"D:\Translations\FDI\5x5go\xna_a.fdi",
+            @"D:\Translations\FDI\5x5go\xna_b.fdi",
+            @"D:\Translations\FDI\5x5go\zukan_a.fdi",
+            @"D:\Translations\FDI\5x5go\zukan_a_alt.fdi",
+            @"D:\Translations\FDI\5x5go\zukan_b.fdi"
+        };
         private static FileSystemParameters parameters;
         private static string exportPath = @"D:\Translations\HDI\Export";
         public static void Main(string[] args) {
@@ -25,12 +62,167 @@ namespace Test {
             file = @"S:\Translations\HDI\MacrossCompilation.hdi";
             file = @"S:\Translations\HDI\DK4.hdi";
             file = @"S:\Translations\HDI\Harlem Blade (1996)(Giga).hdi";
-            Test3(file);
+            //Test3(file);
             //Test4();
             //Test5();
             //Test6();
             //ExportFile(file);
             //TestPartition(file);
+            //FDIInfo(@"D:\Translations\FDI\5x5go");
+            //FDIChecker(@"D:\Translations\FDI\5x5go");
+            //CheckFDI(@"D:\Translations\FDI\5x5go\adesugata.fdi");
+            FDIChecker1(fileList2);
+        }
+
+        private static void FDIChecker1(string[] files) {
+            foreach (var file in files) {
+                Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                Console.WriteLine(file);
+                CheckFDI(file);
+            }
+        }
+
+        private static void FDIChecker(string dirname) {
+            var files = Directory.GetFiles(dirname);
+            var start = false;
+            foreach (var file in files) {
+                if (!file.ToLower().EndsWith("fdi")) continue;
+                if (!start) {
+                    if (file == @"D:\Translations\FDI\5x5go\sabnack (j).fdi") {
+                        start = true;
+                    }
+                    continue;
+                }
+                Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                Console.WriteLine(file);
+                try {
+                    CheckFDI(file);
+                } catch (Exception ex) {
+                    Console.WriteLine(ex.ToString());
+                }
+            }
+        }
+
+        private static void CheckFDI(string file) {
+            var disk = VirtualDisk.OpenDisk(file, FileAccess.Read);
+            if (disk == null) {
+                Console.WriteLine("Can't read file");
+                return;
+            }
+            var volMgr = new VolumeManager();
+            volMgr.AddDisk(disk);
+            foreach (var vol in volMgr.GetLogicalVolumes()) {
+                var fileSystemInfos = FileSystemManager.DetectDefaultFileSystems(vol);
+                if (fileSystemInfos == null || fileSystemInfos.Length == 0) {
+                    Console.WriteLine("Can't find filesystems");
+                    return;
+                }
+                foreach (var fsi in fileSystemInfos) {
+                    using (DiscFileSystem fs = fsi.Open(vol)) {
+                        Console.WriteLine("    {0} Volume Label: {1}", fsi.Name, fs.VolumeLabel);
+                        Console.WriteLine("    Files ({0})...", fsi.Name);
+                        ShowDir(fs.Root, 6);
+                    }
+                    Console.WriteLine();
+                }
+            }
+            return;
+        }
+
+        private static void ShowDir(DiscDirectoryInfo dirInfo, int indent) {
+            Console.WriteLine("{0}{1,-50} [{2}]", new String(' ', indent), dirInfo.FullName, dirInfo.CreationTimeUtc);
+            foreach (DiscDirectoryInfo subDir in dirInfo.GetDirectories()) {
+                ShowDir(subDir, indent + 0);
+            }
+            foreach (DiscFileInfo file in dirInfo.GetFiles()) {
+                Console.WriteLine("{0}{1,-50} [{2}]", new String(' ', indent), file.FullName, file.CreationTimeUtc);
+            }
+        }
+
+        private static void FDIInfo(string dirname) {
+            var dirs = Directory.GetFiles(dirname);
+            var start = false;
+            var stat = new Dictionary<string, int>();
+            foreach (var file in dirs) {
+                if (!file.ToLower().EndsWith("fdi")) continue;
+                
+                using (var f = File.Open(file, FileMode.Open)) {
+                    f.Position = 0x1000 + 3;
+                    var data = new byte[8];
+                    f.Read(data, 0, 8);
+                    var descr = Encoding.ASCII.GetString(data);
+                    descr = descr.TrimEnd('\0');
+                    if (descr.Contains(';')) {
+                        descr = descr.Replace(';', ',');
+                    }
+                    f.Position = 0x1020;
+                    var sizeb = new byte[4];
+                    f.Read(sizeb, 0, 4);
+                    var size = BitConverter.ToString(sizeb);
+                    if (stat.ContainsKey(size)) {
+                        stat[size]++;
+                    } else {
+                        stat.Add(size, 1);
+                    }
+                    f.Position = 0x1000;
+                    data = new byte[0x3e];
+                    f.Read(data, 0, 0x3e);
+                    var hex = BitConverter.ToString(data);
+                    var ascii = Encoding.ASCII.GetString(data).Replace('\r', ' ').Replace('\n', ' ').Replace(';', ' ');
+                    Console.WriteLine($@"{new FileInfo(file).Name};{descr};{size};{hex};{ascii}");
+                }
+                
+            }
+            Console.WriteLine("=========================");
+            foreach (var key in stat.Keys) {
+                Console.WriteLine($@"{key};{stat[key]}");
+            }
+        }
+
+        private static void FDIClear(string dirname) {
+            var dirs = Directory.GetFiles(dirname);
+            var start = false;
+            foreach (var file in dirs) {
+                if (!file.ToLower().EndsWith("fdi")) continue;
+                if (!start) {
+                    if (file.EndsWith("cinema1.fdi")) {
+                        start = true;
+                    } else {
+                        continue;
+                    }
+                }
+                var process = System.Diagnostics.Process.Start(file);
+                Thread.Sleep(100);
+                var title = process.MainWindowTitle;
+                process.CloseMainWindow();
+                process.Close();
+                Thread.Sleep(500);
+                if (string.IsNullOrEmpty(title)) {
+                    Console.WriteLine($@"Delete file {file}");
+                    File.Delete(file);
+                    /*Console.Write($@"Delete file {file}? y/ ");
+                    var ans = Console.ReadLine();
+                    if (ans.StartsWith("y")) {
+                        Console.WriteLine("Deleting...");
+                        File.Delete(file);
+                        continue;
+                    }*/
+                } else {
+                    Console.WriteLine($@"OK - {title}");
+                }
+                continue;
+                using (var f = File.Open(file, FileMode.Open)) {
+                    f.Position = 0x1000 + 3;
+                    var data = new byte[8];
+                    f.Read(data, 0, 8);
+                    var descr = Encoding.ASCII.GetString(data);
+                    descr = descr.TrimEnd('\0');
+                    f.Position = 0x1020;
+                    var sizeb = new byte[4];
+                    f.Read(sizeb, 0, 4);
+                    Console.WriteLine($@"{new FileInfo(file).Name};{descr};{sizeb[0]:X2}-{sizeb[1]:X2}-{sizeb[2]:X2}-{sizeb[3]:X2}");
+                }
+            }
         }
 
         private static void TestPartition(string file) {

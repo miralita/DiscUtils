@@ -37,6 +37,10 @@ namespace DiscUtils.Fat
 
         private byte[] _raw;
 
+        public override string ToString() {
+            return Encoding.ASCII.GetString(_raw);
+        }
+
         public FileName(byte[] data, int offset)
         {
             _raw = new byte[11];
