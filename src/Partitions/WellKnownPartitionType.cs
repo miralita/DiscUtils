@@ -51,5 +51,7 @@ namespace DiscUtils.Partitions
         /// Linux Logical Volume Manager (LVM).
         /// </summary>
         LinuxLvm = 4,
+
+        PC98Fat = 5,
     }
 }

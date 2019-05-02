@@ -5,11 +5,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DiscUtils.Hdi;
 
-namespace DiscUtils.Partitions
-{
+namespace DiscUtils.Partitions {
     public sealed class PC98PartitionTable : PartitionTable {
-
         private Stream _diskData;
         private Geometry _diskGeometry;
         private VirtualDisk disk;
@@ -19,7 +18,7 @@ namespace DiscUtils.Partitions
         public override ReadOnlyCollection<PartitionInfo> Partitions {
             get {
                 var result = new List<PartitionInfo>();
-                var rec = new PC98PartitionRecord(_diskData, _diskGeometry.BytesPerSector);
+                var rec = new PC98PartitionRecord(_diskData, disk.SectorSize);
                 result.Add(new PC98PartitionInfo(this, rec));
                 return new ReadOnlyCollection<PartitionInfo>(result);
             }
@@ -31,7 +30,66 @@ namespace DiscUtils.Partitions
         public int SectorsPerTrack => disk.Geometry.SectorsPerTrack;
 
         public override int Create(WellKnownPartitionType type, bool active) {
-            throw new NotImplementedException();
+            var geometry = new Geometry(_diskData.Length, _diskGeometry.HeadsPerCylinder, _diskGeometry.SectorsPerTrack,
+                _diskGeometry.BytesPerSector);
+            var start = new ChsAddress(0, 1, 1);
+            var last = geometry.LastSector;
+            var startLba = geometry.ToLogicalBlockAddress(start);
+            var lastLba = geometry.ToLogicalBlockAddress(last);
+            var record = new PC98PartitionRecord();
+            record.Bootable = true;
+            record.PartitionType = PartType.DOS;
+            record.FsType = FSType.FAT12;
+            record.IplCyl = record.Cylinder = 1;
+            record.IplHead = record.Head = 0;
+            record.IplSect = record.Sector = 0;
+            //record.EndCyl = (ushort) (disk.BiosGeometry.Cylinders - 2);
+            record.EndCyl = (ushort) (last.Cylinder - 2);
+            //record.EndHead = (byte) last.Head;
+            //record.EndSector = (byte) last.Sector;
+            record.EndHead = 0;
+            record.EndSector = 0;
+            record.Name = "PC98DiskUtils";
+            _diskData.Position = disk.SectorSize;
+            record.Write(_diskData);
+            _diskData.Position = disk.SectorSize * 2;
+            var buf = new byte[disk.SectorSize];
+            for (var i = 0; i < buf.Length; i++) {
+                buf[i] = 0xe5;
+            }
+            _diskData.Write(buf, 0, buf.Length);
+            _diskData.Write(buf, 0, buf.Length);
+            _diskData.Position += 0x2000; // отступим загрузчик
+            for (var i = _diskData.Position; i < _diskData.Length; i += disk.SectorSize) {
+                _diskData.Write(buf, 0, buf.Length);
+            }
+            _diskData.Flush();
+            return 0;
+        }
+
+        private static byte ConvertType(WellKnownPartitionType type, long size) {
+            switch (type) {
+                case WellKnownPartitionType.PC98Fat:
+                case WellKnownPartitionType.WindowsFat:
+                    if (size < 512 * Sizes.OneMiB) {
+                        return BiosPartitionTypes.Fat16;
+                    } else if (size < 1023 * (long) 254 * 63 * 512) {
+                        // Max BIOS size
+                        return BiosPartitionTypes.Fat32;
+                    } else {
+                        return BiosPartitionTypes.Fat32Lba;
+                    }
+                case WellKnownPartitionType.WindowsNtfs:
+                    return BiosPartitionTypes.Ntfs;
+                case WellKnownPartitionType.Linux:
+                    return BiosPartitionTypes.LinuxNative;
+                case WellKnownPartitionType.LinuxSwap:
+                    return BiosPartitionTypes.LinuxSwap;
+                case WellKnownPartitionType.LinuxLvm:
+                    return BiosPartitionTypes.LinuxLvm;
+                default:
+                    throw new ArgumentException($"Unrecognized partition type: '{type}'", "type");
+            }
         }
 
         internal static bool IsValid(SparseStream content, int sectorSize) {
@@ -90,6 +148,12 @@ namespace DiscUtils.Partitions
             var stream = new SubStream(_diskData, Ownership.None, info.PartitionOffset, info.PartitionEnd);
             stream.FileNameEncoding = Encoding.GetEncoding("shift-jis");
             return stream;
+        }
+
+        public static PC98PartitionTable Initialize(Disk disk, WellKnownPartitionType type) {
+            var table = new PC98PartitionTable(disk);
+            table.Create(type, true);
+            return table;
         }
     }
 }

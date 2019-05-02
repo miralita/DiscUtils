@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -70,8 +71,43 @@ namespace Test {
             //TestPartition(file);
             //FDIInfo(@"D:\Translations\FDI\5x5go");
             //FDIChecker(@"D:\Translations\FDI\5x5go");
-            //CheckFDI(@"D:\Translations\FDI\5x5go\adesugata.fdi");
-            FDIChecker1(fileList2);
+            //CheckFDI(@"H:\translations\Translations\Floppy\fdi\sstriders_01.fdi");
+            //CheckFDI(@"H:\translations\Translations\Floppy\d88\04_disk.d88");
+            //D88Checker();
+            //CheckD88(@"S:\Translations\Patcher\Macross\sr-cp_1.d88");
+            //FDIChecker1(fileList2);
+            //Newdisk(@"D:\Translations\Tools\Patcher\images\test.hdi");
+            file = @"D:\Translations\KOEI\Air Management 1 - Ozora ni Kakeru (J) A.FDI";
+            //file = @"D:\Translations\RememberMe\mac1_1.fdi";
+            Tester(file);
+        }
+
+        private static void Tester(string file) {
+            var disk = new DiscUtils.Fdi.Disk(file);
+            var stream = new SubStream(disk.Content, 0x400, disk.Content.Length - 0x4000);
+            var fat = new PC98FatFileSystem(disk.Content);
+            walkDir(fat, @"\", 0);
+        }
+
+        private static void D88Checker() {
+            var files = Directory.GetFiles(@"H:\translations\Translations\Floppy\d88");
+            foreach (var file in files) {
+                Console.WriteLine(file);
+                try {
+                    CheckD88(file);
+                } catch (Exception ex) {
+                    Console.WriteLine(ex.ToString());
+                }
+            }
+        }
+
+        private static void CheckD88(string file) {
+            using (var disk = VirtualDisk.OpenDisk(file, FileAccess.Read)) {
+                using (var fs = new PC98FatFileSystem(disk.Content)) {
+                    //ShowDir(fs.Root, 6);
+                    walkDir(fs, @"\", 0);
+                }
+            }
         }
 
         private static void FDIChecker1(string[] files) {
@@ -232,7 +268,8 @@ namespace Test {
                 var p = pt[0].Partitions[0];
                 var fs = new FatFileSystem(p.Open());
                 var files = fs.GetFiles(@"\");
-                walkDir(fs, @"\", 0);
+                Console.WriteLine(1 + disk.Partitions[0].LastSector - disk.Partitions[0].FirstSector);
+                //walkDir(fs, @"\", 0);
             }
         }
 
@@ -317,6 +354,28 @@ namespace Test {
                         Console.WriteLine($@"{ex.Message}");
                     }
                 }
+            }
+        }
+
+        private static void DiskInfo(string filename) {
+            using (var disk = new Disk(filename)) {
+                var header = disk.Header;
+                Console.WriteLine(
+                    $@"	Type: {header.Hddtype}, Size: {header.Hddsize}, SectorSize: 0x{header.Sectorsize:X2}, Sectors: {
+                            header.Sectors
+                        }, Surfaces: {header.Surfaces}, Cylinders: {header.Cylinders}");
+                var part = disk.PartitionInfo;
+                Console.WriteLine(
+                    $@"	Bootable: {part.Bootable}, PartType: {part.PartitionType}, Active: {part.Active}, FSType: {
+                            part.FsType
+                        }, IPL section: 0x{part.IplSect:X2}, IPL Head: 0x{part.IplHead:X2}, IPL Cyl: 0x{
+                            part.IplCyl
+                        :X4}, Sector: 0x{part.Sector:X2}, Head: 0x{part.Head:X2}, Cylinder: 0x{
+                            part.Cylinder
+                        :X4}, EndSector: 0x{part.EndSector:X2}, EndHead: 0x{part.EndHead:X2}, EndCyl: 0x{
+                            part.EndCyl
+                        :X4}, Name: {part.Name}");
+                Console.WriteLine($@"   Partition offset: 0x{disk.PartitionOffset:X6}");
             }
         }
 
@@ -466,6 +525,41 @@ namespace Test {
 
             Console.WriteLine("Finished");
             Console.ReadLine();
+        }
+
+        public static void Newdisk(string filename) {
+            /*long diskSize = 30 * 1024 * 1024; //30MB
+using (Stream vhdStream = File.Create(@"C:\TEMP\mydisk.vhd"))
+{
+    Disk disk = Disk.InitializeDynamic(vhdStream, diskSize);
+    BiosPartitionTable.Initialize(disk, WellKnownPartitionType.WindowsFat);
+    using (FatFileSystem fs = FatFileSystem.FormatPartition(disk, 0, null))
+    {
+        fs.CreateDirectory(@"TestDir\CHILD");
+        // do other things with the file system...
+                Type: 0, Size: 15713280, SectorSize: 0x100, Sectors: 33, Surfaces: 6, Cylinders: 310
+        Bootable: True, PartType: DOS, Active: True, FSType: FAT12, IPL section: 0x00, IPL Head: 0x00, IPL Cyl: 0x0001, Sector: 0x00, Head: 0x00, Cylinder: 0x0001, EndSector: 0x00, EndHead: 0x00, EndCyl: 0x012C, Name: PATCHER
+   Partition offset: 0x00D600
+
+    }
+}*/
+            /*using (var fh = File.Create(filename)) {
+                var disk = Disk.InitializeFixed(fh, Ownership.None, HddType.Size15Mb);
+                PC98PartitionTable.Initialize(disk, WellKnownPartitionType.PC98Fat);
+                using (var fs = PC98FatFileSystem.FormatPartition(disk, 0, null, disk.Header.Sectorsize)) {
+                    fs.CreateDirectory(@"\TestDir");
+                }
+            }*/
+            filename = @"D:\Translations\Tools\Patcher\images\newdisk_reformat.hdi";
+            using (var disk = new Disk(filename)) {
+                PC98PartitionTable.Initialize(disk, WellKnownPartitionType.PC98Fat);
+                using (var fs = PC98FatFileSystem.FormatPartition(disk, 0, null, disk.Header.Sectorsize)) {
+                    //fs.CreateDirectory(@"\TestDir");
+                }
+            }
+            filename = @"D:\Translations\Tools\Patcher\images\newdisk30.hdi";
+            //TestPartition(filename);
+            //DiskInfo(filename);
         }
     }
 }

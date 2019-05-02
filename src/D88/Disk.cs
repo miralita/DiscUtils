@@ -1,15 +1,20 @@
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using DiscUtils.Partitions;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace DiscUtils.Hdi {
-    public sealed class Disk : VirtualDisk {
+namespace DiscUtils.D88
+{
+    public sealed class Disk : VirtualDisk
+    {
         private DiskLayer _file;
         private SparseStream _content;
         private FileAccess access;
 
         public override Geometry Geometry => _file.Geometry;
-        public override VirtualDiskClass DiskClass => VirtualDiskClass.HardDisk;
+        public override VirtualDiskClass DiskClass => VirtualDiskClass.FloppyDisk;
         public override long Capacity => _file.Capacity;
 
         public override SparseStream Content => _content ?? (_content = _file.OpenContent(null, Ownership.None));
@@ -18,16 +23,12 @@ namespace DiscUtils.Hdi {
             get { yield return _file; }
         }
 
-        public override VirtualDiskTypeInfo DiskTypeInfo => DiskFactory.MakeDiskTypeInfo();
+        public override VirtualDiskTypeInfo DiskTypeInfo => Fdi.DiskFactory.MakeDiskTypeInfo();
         public DiskHeader Header => _file.Header;
-
-        public PC98PartitionRecord PartitionInfo => _file.PartitionInfo;
 
         public uint PartitionOffset => _file.PartitionOffset;
 
         public uint BytesPerBlock => _file.BytesPerBlock;
-
-        public override int BlockSize => (int) _file.Header.Sectorsize;
 
         public override VirtualDisk CreateDifferencingDisk(DiscFileSystem fileSystem, string path) {
             throw new System.NotImplementedException();
@@ -58,22 +59,15 @@ namespace DiscUtils.Hdi {
             this.access = access;
         }
 
-        public static Disk InitializeFixed(Stream stream, Ownership ownsStream, HddType capacity) {
+        /*public static Disk InitializeFixed(Stream stream, Ownership ownsStream, FddType capacity) {
             return new Disk(DiskLayer.InitializeFixed(stream, ownsStream, capacity));
-        }
+        }*/
 
         protected override void Dispose(bool disposing) {
             try {
                 if (disposing) _file.Dispose();
             } finally {
                 base.Dispose(disposing);
-            }
-        }
-
-        public override PartitionTable Partitions {
-            get {
-                var parts = PartitionTable.GetPartitionTables(this);
-                return parts[0];
             }
         }
     }

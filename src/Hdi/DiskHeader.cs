@@ -47,7 +47,7 @@ namespace DiscUtils.Hdi {
                 case HddType.Size20Mb:
                     hddtype = 3;
                     surfaces = 8;
-                    cylinders = 615;
+                    cylinders = 310;
                     break;
                 case HddType.Size30Mb:
                     hddtype = 5;
@@ -60,7 +60,7 @@ namespace DiscUtils.Hdi {
                     cylinders = 615;
                     break;
             }
-            hddsize = sectors * surfaces * cylinders;
+            hddsize = sectors * surfaces * cylinders * sectorsize;
         }
 
         public uint Dummy {
@@ -148,13 +148,14 @@ namespace DiscUtils.Hdi {
         internal void Write(Stream s) {
             var buf = new byte[4 * 8];
             WriteUint(Dummy, buf, 0);
-            WriteUint(Hddsize, buf, 4);
+            WriteUint(0, buf, 4);
             WriteUint(Headersize, buf, 8);
             WriteUint(Hddsize, buf, 12);
             WriteUint(Sectorsize, buf, 16);
             WriteUint(Sectors, buf, 20);
             WriteUint(Surfaces, buf, 24);
             WriteUint(Cylinders, buf, 28);
+            s.Write(buf, 0, buf.Length);
         }
 
         private static void WriteUint(uint val, byte[] buf, int offset) {

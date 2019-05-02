@@ -363,10 +363,11 @@ namespace DiscUtils.Fat
                 pos = _freeEntries[0];
                 _freeEntries.RemoveAt(0);
             }
-            else
-            {
-                pos = _endOfEntries;
-                _endOfEntries += 32;
+            else {
+                do {
+                    pos = _endOfEntries;
+                    _endOfEntries += 32;
+                } while (_entries.ContainsKey(pos));
             }
 
             // Put the new entry into it's slot

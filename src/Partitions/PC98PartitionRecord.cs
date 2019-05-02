@@ -5,9 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiscUtils.Partitions
-{
-    public enum PartType : uint{
+namespace DiscUtils.Partitions {
+    public enum PartType : uint {
         N88_PCUX = 0,
         PCUX = 4,
         N88_1 = 6,
@@ -33,8 +32,7 @@ namespace DiscUtils.Partitions
         EXT2 = 0x62,
     }
 
-    public class PC98PartitionRecord : IComparable<PC98PartitionRecord>
-    {
+    public class PC98PartitionRecord : IComparable<PC98PartitionRecord> {
         private byte mid;
         private bool bootable;
         private PartType partType;
@@ -47,6 +45,7 @@ namespace DiscUtils.Partitions
         /*private byte dum1;
         private byte dum2;*/
         private byte ipl_sect;
+
         private byte ipl_head;
         private ushort ipl_cyl;
         private byte sector;
@@ -97,6 +96,43 @@ namespace DiscUtils.Partitions
             name = Encoding.ASCII.GetString(buf, i, 16);
         }
 
+        public void Write(Stream s) {
+            var buf = new byte[32];
+            var i = 0;
+            mid = (byte) partType;
+            if (bootable) {
+                mid |= 0x80;
+            }
+            buf[i++] = mid;
+            sid = (byte) fsType;
+            sid |= 0x80; // active
+            buf[i++] = sid;
+            i += 2;
+            buf[i++] = ipl_sect;
+            buf[i++] = ipl_head;
+            buf[i++] = (byte) (ipl_cyl & 0x000000ff);
+            buf[i++] = (byte) (ipl_cyl >> 8);
+            buf[i++] = sector;
+            buf[i++] = head;
+            buf[i++] = (byte) (cyl & 0x000000ff);
+            buf[i++] = (byte) (cyl >> 8);
+            buf[i++] = end_sector;
+            buf[i++] = end_head;
+            buf[i++] = (byte) (end_cyl & 0x000000ff);
+            buf[i++] = (byte) (end_cyl >> 8);
+            var nameByte = Encoding.ASCII.GetBytes(name);
+            for (var j = 0; j < nameByte.Length; j++) {
+                buf[i++] = nameByte[j];
+            }
+            for (; i < buf.Length; i++) {
+                buf[i] = 0x20;
+            }
+            s.Write(buf, 0, buf.Length);
+        }
+
+        public PC98PartitionRecord() {
+        }
+
         public PC98PartitionRecord(Stream s, int position) {
             s.Position = position;
             _stream = s;
@@ -104,59 +140,70 @@ namespace DiscUtils.Partitions
         }
 
         public bool Bootable {
-            get { return bootable; }
+            get => bootable;
+            set => bootable = value;
         }
 
         public PartType PartitionType {
-            get { return partType; }
+            get => partType;
+            set => partType = value;
         }
 
-        public bool Active {
-            get { return active; }
-        }
+        public bool Active => active;
 
         public FSType FsType {
-            get { return fsType; }
+            get => fsType;
+            set => fsType = value;
         }
 
         public byte IplSect {
-            get { return ipl_sect; }
+            get => ipl_sect;
+            set => ipl_sect = value;
         }
 
         public byte IplHead {
-            get { return ipl_head; }
+            get => ipl_head;
+            set => ipl_head = value;
         }
 
         public ushort IplCyl {
-            get { return ipl_cyl; }
+            get => ipl_cyl;
+            set => ipl_cyl = value;
         }
 
         public byte Sector {
-            get { return sector; }
+            get => sector;
+            set => sector = value;
         }
 
         public byte Head {
-            get { return head; }
+            get => head;
+            set => head = value;
         }
 
         public ushort Cylinder {
-            get { return cyl; }
+            get => cyl;
+            set => cyl = value;
         }
 
         public byte EndSector {
-            get { return end_sector; }
+            get => end_sector;
+            set => end_sector = value;
         }
 
         public byte EndHead {
-            get { return end_head; }
+            get => end_head;
+            set => end_head = value;
         }
 
         public ushort EndCyl {
-            get { return end_cyl; }
+            get => end_cyl;
+            set => end_cyl = value;
         }
 
         public string Name {
-            get { return name; }
+            get => name;
+            set => name = value;
         }
 
         public int CompareTo(PC98PartitionRecord other) {

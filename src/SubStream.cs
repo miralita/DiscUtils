@@ -28,7 +28,7 @@ namespace DiscUtils
     using System.Collections.Generic;
     using System.IO;
 
-    internal class SubStream : MappedStream
+    public class SubStream : MappedStream
     {
         private long _position;
         private long _first;
