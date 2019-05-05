@@ -50,7 +50,7 @@ namespace Test {
             @"D:\Translations\FDI\5x5go\zukan_b.fdi"
         };
         private static FileSystemParameters parameters;
-        private static string exportPath = @"D:\Translations\HDI\Export";
+        private static string exportPath = @"H:\Translations\XDF\Export";
         public static void Main(string[] args) {
             parameters = new FileSystemParameters();
             parameters.FileNameEncoding = Encoding.GetEncoding("shift-jis");
@@ -79,14 +79,75 @@ namespace Test {
             //Newdisk(@"D:\Translations\Tools\Patcher\images\test.hdi");
             file = @"D:\Translations\KOEI\Air Management 1 - Ozora ni Kakeru (J) A.FDI";
             //file = @"D:\Translations\RememberMe\mac1_1.fdi";
-            Tester(file);
+            //Tester(file);
+            file = @"H:\translations\Translations\StarCruiserX68k\HDM_Disks\Original\disk1.xdf";
+            XdfCheck(file);
+            
+            //var stream = new SubStream(disk.Content, 0x400, disk.Content.Length - 0x400);
+            //var stream = new SubStream(disk.Content, 0x400, disk.Content.Length - 0x400);
+            //var fat = new PC98FatFileSystem(stream);
+            
         }
 
+        private static void XdfCheck(string fname) {
+            var disk = new DiscUtils.Xdf.Disk(fname);
+            var param = new FileSystemParameters();
+            //param.SectorSize = disk.SectorSize;
+            param.SectorSize = 1024;
+            param.FileNameEncoding = Encoding.GetEncoding("shift-jis");
+            var fat = new PC98FatFileSystem(disk.Content, param);
+            var files = fat.GetFiles(@"\");
+            Array.Sort(files);
+            foreach (var file in files) {
+                var length = fat.GetFileLength(file) / 1024.0;
+                var info = fat.GetFileInfo(file);
+                Console.WriteLine(file + $@" ({length:F2} Kb) {info.CreationTime} {info.LastAccessTime} {info.LastWriteTime}");
+                var path = Path.Combine(exportPath, new FileInfo(file).Name);
+                using (var outfh = File.OpenWrite(path)) {
+                    using (var infh = fat.OpenFile(file, FileMode.Open)) {
+                        var buf = new byte[1024];
+                        var n = 0;
+                        do {
+                            n = infh.Read(buf, 0, 1024);
+                            outfh.Write(buf, 0, n);
+                        } while (n == 1024);
+                    }
+                }
+            }
+        }
         private static void Tester(string file) {
             var disk = new DiscUtils.Fdi.Disk(file);
             var stream = new SubStream(disk.Content, 0x400, disk.Content.Length - 0x4000);
             var fat = new PC98FatFileSystem(disk.Content);
             walkDir(fat, @"\", 0);
+        }
+
+        private static void ExportFs(FatFileSystem fs, string dirname, string path) {
+            Directory.CreateDirectory(path);
+            var dirs = fs.GetDirectories(dirname);
+            Array.Sort(dirs);
+            foreach (var dir in dirs) {
+                Console.WriteLine(dir);
+                var newpath = Path.Combine(path, new FileInfo(dir).Name);
+                ExportFs(fs, dir, newpath);
+            }
+            var files = fs.GetFiles(dirname);
+            Array.Sort(files);
+            foreach (var file in files) {
+                var length = fs.GetFileLength(file) / 1024.0;
+                Console.WriteLine(file + $@" ({length:F2} Kb)");
+                var exportPath = Path.Combine(path, new FileInfo(file).Name);
+                using (var outfh = File.OpenWrite(exportPath)) {
+                    using (var infh = fs.OpenFile(file, FileMode.Open)) {
+                        var buf = new byte[1024];
+                        var n = 0;
+                        do {
+                            n = infh.Read(buf, 0, 1024);
+                            outfh.Write(buf, 0, n);
+                        } while (n == 1024);
+                    }
+                }
+            }
         }
 
         private static void D88Checker() {
@@ -284,44 +345,6 @@ namespace Test {
                     //continue;
                 }
                 ListCheck(file);
-            }
-        }
-
-        public static void ExportFile(string filename) {
-            Console.WriteLine($@"===================== {filename} ===================");
-            using (var disk = new Disk(filename)) {
-                using (var fs = new FatFileSystem(PartitionTable.GetPartitionTables(disk)[0].Partitions[0].Open())) {
-                    var path = Path.Combine(exportPath, new FileInfo(filename).Name.Replace(".hdi", ""));
-                    ExportFs(fs, @"\", path);
-                }
-            }
-        }
-
-        private static void ExportFs(FatFileSystem fs, string dirname, string path) {
-            Directory.CreateDirectory(path);
-            var dirs = fs.GetDirectories(dirname);
-            Array.Sort(dirs);
-            foreach (var dir in dirs) {
-                Console.WriteLine(dir);
-                var newpath = Path.Combine(path, new FileInfo(dir).Name);
-                ExportFs(fs, dir, newpath);
-            }
-            var files = fs.GetFiles(dirname);
-            Array.Sort(files);
-            foreach (var file in files) {
-                var length = fs.GetFileLength(file) / 1024.0;
-                Console.WriteLine(file + $@" ({length:F2} Kb)");
-                var exportPath = Path.Combine(path, new FileInfo(file).Name);
-                using (var outfh = File.OpenWrite(exportPath)) {
-                    using (var infh = fs.OpenFile(file, FileMode.Open)) {
-                        var buf = new byte[1024];
-                        var n = 0;
-                        do {
-                            n = infh.Read(buf, 0, 1024);
-                            outfh.Write(buf, 0, n);
-                        } while (n == 1024);
-                    }
-                }
             }
         }
 

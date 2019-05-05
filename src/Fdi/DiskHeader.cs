@@ -5,10 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiscUtils.Fdi
-{
-    public class DiskHeader
-    {
+namespace DiscUtils.Fdi {
+    public class DiskHeader {
         /*typedef struct {
 	UINT8	dummy[4];
 	UINT8	fddtype[4];

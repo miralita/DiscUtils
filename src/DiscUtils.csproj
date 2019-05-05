@@ -146,6 +146,9 @@
     <Compile Include="D88\DiskHeader.cs" />
     <Compile Include="D88\DiskLayer.cs" />
     <Compile Include="Ext\ExtFileSystemOptions.cs" />
+    <Compile Include="Fat\HumanBiosParameterBlock.cs" />
+    <Compile Include="Fat\FatBiosParameterBlock.cs" />
+    <Compile Include="Fat\IBiosParameterBlock.cs" />
     <Compile Include="Fat\PC98FatFileSystem.cs" />
     <Compile Include="Fdi\Disk.cs" />
     <Compile Include="Fdi\DiskFacotry.cs" />
@@ -859,6 +862,10 @@
     <Compile Include="WrappingMappedStream.cs" />
     <Compile Include="WrappingStream.cs" />
     <Compile Include="Archives\UnixBuildFileRecord.cs" />
+    <Compile Include="Xdf\Disk.cs" />
+    <Compile Include="Xdf\DiskFactory.cs" />
+    <Compile Include="Xdf\DiskHeader.cs" />
+    <Compile Include="Xdf\DiskLayer.cs" />
     <Compile Include="Xva\ChecksumStream.cs" />
     <Compile Include="Xva\Disk.cs" />
     <Compile Include="Xva\DiskFactory.cs" />

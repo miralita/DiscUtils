@@ -1920,6 +1920,42 @@
             Old revision, not supported by DiscUtils.
             </summary>
         </member>
+        <member name="F:DiscUtils.Fat.HumanBiosParameterBlock.jump">
+            <summary>68k bra.S</summary>
+        </member>
+        <member name="P:DiscUtils.Fat.HumanBiosParameterBlock.Oemname">
+            <summary>OEM Name, 16 bytes, space-padded</summary>
+        </member>
+        <member name="F:DiscUtils.Fat.HumanBiosParameterBlock.bpc">
+            <summary>Bytes per cluster</summary>
+        </member>
+        <member name="F:DiscUtils.Fat.HumanBiosParameterBlock.unknown1">
+            <summary>Unknown, seen 1, 2 and 16</summary>
+        </member>
+        <member name="F:DiscUtils.Fat.HumanBiosParameterBlock.unknown2">
+            <summary>Unknown, always 512?</summary>
+        </member>
+        <member name="F:DiscUtils.Fat.HumanBiosParameterBlock.unknown3">
+            <summary>Unknown, always 1?</summary>
+        </member>
+        <member name="P:DiscUtils.Fat.HumanBiosParameterBlock.RootEntriesCnt">
+            <summary>Number of entries on root directory</summary>
+        </member>
+        <member name="F:DiscUtils.Fat.HumanBiosParameterBlock.clusters">
+            <summary>Clusters, set to 0 if more than 65536</summary>
+        </member>
+        <member name="P:DiscUtils.Fat.HumanBiosParameterBlock.Media">
+            <summary>Media descriptor</summary>
+        </member>
+        <member name="F:DiscUtils.Fat.HumanBiosParameterBlock.cpfat">
+            <summary>Clusters per FAT, set to 0</summary>
+        </member>
+        <member name="F:DiscUtils.Fat.HumanBiosParameterBlock.big_clusters">
+            <summary>Clustersin volume</summary>
+        </member>
+        <member name="F:DiscUtils.Fat.HumanBiosParameterBlock.boot_code">
+            <summary>Boot code.</summary>
+        </member>
         <member name="F:DiscUtils.Fat.ClusterReader._clusterSize">
             <summary>
             Pre-calculated value because of number of uses of this externally.
@@ -2159,11 +2195,6 @@
             Gets the cluster number of the first cluster of the root directory (FAT32 only).
             </summary>
         </member>
-        <member name="P:DiscUtils.Fat.FatFileSystem.FSInfoSector">
-            <summary>
-            Gets the sector location of the FSINFO structure (FAT32 only).
-            </summary>
-        </member>
         <member name="P:DiscUtils.Fat.FatFileSystem.BackupBootSector">
             <summary>
             Gets the Sector location of the backup boot sector (FAT32 only).
@@ -2346,32 +2377,12 @@
             </summary>
             <param name="path">The path of the directory to delete.</param>
         </member>
-        <member name="M:DiscUtils.Fat.FatFileSystem.DeleteFile(System.String)">
-            <summary>
-            Deletes a file.
-            </summary>
-            <param name="path">The path of the file to delete.</param>
-        </member>
         <member name="M:DiscUtils.Fat.FatFileSystem.DirectoryExists(System.String)">
             <summary>
             Indicates if a directory exists.
             </summary>
             <param name="path">The path to test.</param>
             <returns>true if the directory exists.</returns>
-        </member>
-        <member name="M:DiscUtils.Fat.FatFileSystem.FileExists(System.String)">
-            <summary>
-            Indicates if a file exists.
-            </summary>
-            <param name="path">The path to test.</param>
-            <returns>true if the file exists.</returns>
-        </member>
-        <member name="M:DiscUtils.Fat.FatFileSystem.Exists(System.String)">
-            <summary>
-            Indicates if a file or directory exists.
-            </summary>
-            <param name="path">The path to test.</param>
-            <returns>true if the file or directory exists.</returns>
         </member>
         <member name="M:DiscUtils.Fat.FatFileSystem.GetDirectories(System.String)">
             <summary>
@@ -2390,6 +2401,26 @@
             <param name="searchOption">Indicates whether to search subdirectories.</param>
             <returns>Array of directories matching the search pattern.</returns>
         </member>
+        <member name="M:DiscUtils.Fat.FatFileSystem.DeleteFile(System.String)">
+            <summary>
+            Deletes a file.
+            </summary>
+            <param name="path">The path of the file to delete.</param>
+        </member>
+        <member name="M:DiscUtils.Fat.FatFileSystem.FileExists(System.String)">
+            <summary>
+            Indicates if a file exists.
+            </summary>
+            <param name="path">The path to test.</param>
+            <returns>true if the file exists.</returns>
+        </member>
+        <member name="M:DiscUtils.Fat.FatFileSystem.Exists(System.String)">
+            <summary>
+            Indicates if a file or directory exists.
+            </summary>
+            <param name="path">The path to test.</param>
+            <returns>true if the file or directory exists.</returns>
+        </member>
         <member name="M:DiscUtils.Fat.FatFileSystem.GetFiles(System.String)">
             <summary>
             Gets the names of files in a specified directory.
@@ -2406,6 +2437,14 @@
             <param name="searchPattern">The search string to match against.</param>
             <param name="searchOption">Indicates whether to search subdirectories.</param>
             <returns>Array of files matching the search pattern.</returns>
+        </member>
+        <member name="M:DiscUtils.Fat.FatFileSystem.MoveFile(System.String,System.String,System.Boolean)">
+            <summary>
+            Moves a file, allowing an existing file to be overwritten.
+            </summary>
+            <param name="sourceName">The file to move.</param>
+            <param name="destinationName">The target file name.</param>
+            <param name="overwrite">Whether to permit a destination file to be overwritten.</param>
         </member>
         <member name="M:DiscUtils.Fat.FatFileSystem.GetFileSystemEntries(System.String)">
             <summary>
@@ -2429,14 +2468,6 @@
             </summary>
             <param name="sourceDirectoryName">The directory to move.</param>
             <param name="destinationDirectoryName">The target directory name.</param>
-        </member>
-        <member name="M:DiscUtils.Fat.FatFileSystem.MoveFile(System.String,System.String,System.Boolean)">
-            <summary>
-            Moves a file, allowing an existing file to be overwritten.
-            </summary>
-            <param name="sourceName">The file to move.</param>
-            <param name="destinationName">The target file name.</param>
-            <param name="overwrite">Whether to permit a destination file to be overwritten.</param>
         </member>
         <member name="M:DiscUtils.Fat.FatFileSystem.Dispose(System.Boolean)">
             <summary>

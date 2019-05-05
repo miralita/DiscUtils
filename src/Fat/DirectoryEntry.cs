@@ -23,6 +23,7 @@
 namespace DiscUtils.Fat
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
     using System.Text;
 
@@ -184,8 +185,12 @@ namespace DiscUtils.Fat
             int minute = (time & 0x07E0) >> 5;
             int second = ((time & 0x001F) * 2) + (tenths / 100);
             int millis = (tenths % 100) * 10;
-
-            return new DateTime(year, month, day, hour, minute, second, millis);
+            try {
+                return new DateTime(year, month, day, hour, minute, second, millis);
+            } catch (Exception ex) {
+                Debug.WriteLine(ex.Message);
+                return DateTime.MinValue;
+            }
         }
 
         private static void DateTimeToFileTime(DateTime value, out ushort date)

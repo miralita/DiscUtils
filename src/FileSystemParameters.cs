@@ -54,5 +54,7 @@ namespace DiscUtils
         /// time (local time where the file system is authored) to UTC time.  This parameter determines
         /// the algorithm to use.</remarks>
         public TimeConverter TimeConverter { get; set; }
+
+        public int SectorSize { get; set; }
     }
 }
