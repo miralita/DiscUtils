@@ -859,6 +859,10 @@ namespace DiscUtils
             }
         }
 
+        public static string ToASCIIString(byte[] data, int offset, int length) {
+            return Encoding.ASCII.GetString(data, offset, length);
+        }
+
         /// <summary>
         /// Read bytes until buffer filled or EOF.
         /// </summary>

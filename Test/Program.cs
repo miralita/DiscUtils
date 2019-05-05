@@ -81,6 +81,7 @@ namespace Test {
             //file = @"D:\Translations\RememberMe\mac1_1.fdi";
             //Tester(file);
             file = @"H:\translations\Translations\StarCruiserX68k\HDM_Disks\Original\disk1.xdf";
+            file = @"H:\translations\Translations\StarCruiserX68k\HDM_Disks\Converted\disk1.DIM";
             XdfCheck(file);
             
             //var stream = new SubStream(disk.Content, 0x400, disk.Content.Length - 0x400);
@@ -90,7 +91,8 @@ namespace Test {
         }
 
         private static void XdfCheck(string fname) {
-            var disk = new DiscUtils.Xdf.Disk(fname);
+            //var disk = new DiscUtils.Xdf.Disk(fname);
+            var disk = new DiscUtils.Dim.Disk(fname);
             var param = new FileSystemParameters();
             //param.SectorSize = disk.SectorSize;
             param.SectorSize = 1024;

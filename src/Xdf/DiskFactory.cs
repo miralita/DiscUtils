@@ -4,10 +4,12 @@ using System.Linq;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-
+/// <summary>
+/// Headless Floppy images
+/// </summary>
 namespace DiscUtils.Xdf
 {
-    [VirtualDiskFactory("XDF", ".xdf")]
+    [VirtualDiskFactory("XDF", ".xdf,.dim")]
     internal sealed class DiskFactory : VirtualDiskFactory
     {
         public override string[] Variants => new string[] { };

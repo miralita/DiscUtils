@@ -145,6 +145,10 @@
     <Compile Include="D88\DiskFactory.cs" />
     <Compile Include="D88\DiskHeader.cs" />
     <Compile Include="D88\DiskLayer.cs" />
+    <Compile Include="Dim\Disk.cs" />
+    <Compile Include="Dim\DiskFactory.cs" />
+    <Compile Include="Dim\DiskHeader.cs" />
+    <Compile Include="Dim\DiskLayer.cs" />
     <Compile Include="Ext\ExtFileSystemOptions.cs" />
     <Compile Include="Fat\HumanBiosParameterBlock.cs" />
     <Compile Include="Fat\FatBiosParameterBlock.cs" />
